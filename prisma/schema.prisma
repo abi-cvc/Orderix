@@ -1,6 +1,13 @@
 // Esquema de datos de Orderix.
-// Los modelos se agregan en el paso 3 del esqueleto. Después, cualquier cambio
-// se hace con un pull request pequeño que revisa todo el equipo.
+//
+// Cada bloque pertenece a UN módulo (src/modules/*). Un módulo solo lee y escribe
+// sus propias tablas; si necesita un dato de otro, se lo pide a su servicio.
+// Por eso las referencias ENTRE módulos son columnas simples (sin @relation ni
+// clave foránea) y las relaciones DENTRO de un módulo sí llevan clave foránea.
+// Ver docs/decisiones/0001-referencias-entre-modulos.md.
+//
+// Cualquier cambio a este archivo se hace con un pull request pequeño que
+// revisa todo el equipo.
 
 generator client {
   provider = "prisma-client"
@@ -9,4 +16,182 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ===========================================================================
+// Módulo: autenticacion
+// ===========================================================================
+
+enum Rol {
+  MESERO
+  COCINA
+  CAJERO
+  ADMINISTRADOR
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(100)
+  correo    String   @unique @db.VarChar(254) // @unique crea el índice de búsqueda por correo
+  hashClave String // Argon2id (incluye la sal). Nunca la clave en texto plano.
+  rol       Rol
+  activo    Boolean  @default(true) // Los usuarios se desactivan, no se borran.
+  creadoEn  DateTime @default(now())
+
+  sesiones           Sesion[]
+  tokensRecuperacion TokenRecuperacion[]
+
+  @@map("usuarios")
+}
+
+model Sesion {
+  // SHA-256 del identificador aleatorio que viaja en la cookie. Si la base se
+  // filtra, los valores guardados no sirven para suplantar una sesión.
+  id        String   @id @db.VarChar(64)
+  usuarioId Int
+  expiraEn  DateTime
+  creadaEn  DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([expiraEn])
+  @@map("sesiones")
+}
+
+model TokenRecuperacion {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  hashToken String   @unique @db.VarChar(64) // SHA-256 del token; el token nunca se guarda.
+  caducaEn  DateTime // 30 minutos después de creado.
+  usado     Boolean  @default(false)
+  creadoEn  DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("tokens_recuperacion")
+}
+
+// ===========================================================================
+// Módulo: menu
+// ===========================================================================
+
+model Producto {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @db.VarChar(120)
+  descripcion   String?  @db.VarChar(500)
+  categoria     String   @db.VarChar(60)
+  precio        Decimal  @db.Decimal(10, 2)
+  disponible    Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([nombre])
+  @@index([categoria])
+  @@map("productos")
+}
+
+// ===========================================================================
+// Módulo: pedidos
+// ===========================================================================
+
+enum EstadoPedido {
+  CREADO
+  EN_PREPARACION
+  LISTO
+  ENTREGADO
+  COBRADO
+  CANCELADO
+}
+
+model Pedido {
+  id           Int          @id @default(autoincrement())
+  numeroMesa   Int
+  meseroId     Int // Usuario (módulo autenticacion). Sin clave foránea.
+  meseroNombre String       @db.VarChar(100) // Copia para mostrar sin consultar usuarios.
+  estado       EstadoPedido @default(CREADO)
+  total        Decimal      @default(0) @db.Decimal(10, 2)
+  notas        String?      @db.VarChar(500)
+  creadoEn     DateTime     @default(now())
+  cerradoEn    DateTime? // Se llena al pasar a COBRADO o CANCELADO.
+
+  items   ItemPedido[]
+  cambios CambioEstado[]
+
+  @@index([estado, creadoEn])
+  @@index([meseroId])
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id             Int      @id @default(autoincrement())
+  pedidoId       Int
+  productoId     Int // Producto (módulo menu). Sin clave foránea.
+  nombreProducto String   @db.VarChar(120) // Copia: un cambio en el menú no altera pedidos pasados.
+  cantidad       Int
+  precioUnitario Decimal  @db.Decimal(10, 2) // Copia del precio al momento del pedido.
+  alergias       String?  @db.VarChar(300)
+  notas          String?  @db.VarChar(300)
+  agregadoEn     DateTime @default(now()) // Los pedidos adicionales quedan con su propia hora.
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([pedidoId])
+  @@map("items_pedido")
+}
+
+model CambioEstado {
+  id        Int          @id @default(autoincrement())
+  pedidoId  Int
+  estado    EstadoPedido
+  usuarioId Int // Quién hizo el cambio (módulo autenticacion). Sin clave foránea.
+  fecha     DateTime     @default(now())
+
+  pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([pedidoId, fecha])
+  @@map("cambios_estado")
+}
+
+// ===========================================================================
+// Módulo: calificaciones (función opcional; la tabla existe desde el esqueleto)
+// ===========================================================================
+
+model Calificacion {
+  id       Int      @id @default(autoincrement())
+  pedidoId Int      @unique // Una sola calificación por pedido. Sin clave foránea.
+  puntaje  Int      @db.SmallInt // 1 a 5 (restricción CHECK en la migración).
+  cajeroId Int // Usuario que abrió la pantalla. Sin clave foránea.
+  fecha    DateTime @default(now())
+
+  @@map("calificaciones")
+}
+
+// ===========================================================================
+// Módulo: tiempo-real
+// ===========================================================================
+
+model Sala {
+  id       Int      @id @default(autoincrement())
+  nombre   String   @unique @db.VarChar(60)
+  creadaEn DateTime @default(now())
+
+  mensajes Mensaje[]
+
+  @@map("salas")
+}
+
+model Mensaje {
+  id          Int      @id @default(autoincrement())
+  salaId      Int
+  autorId     Int // Usuario (módulo autenticacion). Sin clave foránea.
+  autorNombre String   @db.VarChar(100) // Copia para mostrar el historial sin consultar usuarios.
+  texto       String   @db.VarChar(1000)
+  enviadoEn   DateTime @default(now())
+
+  sala Sala @relation(fields: [salaId], references: [id], onDelete: Cascade)
+
+  @@index([salaId, enviadoEn])
+  @@map("mensajes")
 }

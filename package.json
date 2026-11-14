@@ -18,10 +18,13 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "db:seed:volumen": "tsx prisma/seed-volumen.ts"
   },
   "dependencies": {
     "@next/env": "^16.4.6",
+    "@node-rs/argon2": "^2.2.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "cross-env": "^10.1.0",
