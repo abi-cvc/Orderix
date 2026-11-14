@@ -55,3 +55,9 @@ Un pedido también puede quedar "cancelado".
 | Alejandro Veloz    | Por asignar |
 | Roberth Jacome     | Por asignar |
 | Ricardo Villarreal | Por asignar |
+
+## Uso de IA
+
+| Actividad | Uso de IA |
+| --------- | --------- |
+| Historias de usuario | Se utilizó IA para redactar y organizar las historias de usuario, los criterios de aceptación y las reglas del flujo de pedidos en `docs/requisitos.md`. El contenido fue revisado y validado contra los requisitos del proyecto. |
