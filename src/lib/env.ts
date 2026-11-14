@@ -1,7 +1,5 @@
 import { z } from "zod";
-
-/** Roles del sistema. Se reemplaza por el enum de Prisma en el paso 3. */
-export const ROLES = ["MESERO", "COCINA", "CAJERO", "ADMINISTRADOR"] as const;
+import { Rol } from "@/generated/prisma/enums";
 
 const esquemaEnv = z
   .object({
@@ -15,7 +13,7 @@ const esquemaEnv = z
     SESSION_SECRET: z.string().min(32, "SESSION_SECRET debe tener al menos 32 caracteres"),
     SESSION_TTL_HOURS: z.coerce.number().int().positive().default(8),
     DEV_FAKE_USER_ROLE: z
-      .union([z.enum(ROLES), z.literal("")])
+      .union([z.enum(Rol), z.literal("")])
       .optional()
       .transform((valor) => valor || undefined),
   })

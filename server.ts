@@ -10,6 +10,7 @@ import { loadEnvConfig } from "@next/env";
 import next from "next";
 import { Server as SocketServer } from "socket.io";
 import { env } from "@/lib/env";
+import { registrarServidorSocket } from "@/modules/tiempo-real";
 
 const dev = process.env.NODE_ENV !== "production";
 // Carga .env antes de validar, con las mismas reglas que Next.js.
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
     // No destruir conexiones de upgrade ajenas: las de recarga en caliente de Next.
     destroyUpgrade: false,
   });
+  registrarServidorSocket(io);
 
   // Upgrades que no son de Socket.IO (por ejemplo, HMR de Next en desarrollo).
   httpServer.on("upgrade", (req, socket, head) => {

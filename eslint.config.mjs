@@ -4,6 +4,35 @@ import nextTs from "eslint-config-next/typescript";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import prettier from "eslint-config-prettier/flat";
 
+// ---------------------------------------------------------------------------
+// Reglas de arquitectura (ver src/modules/README.md)
+// ---------------------------------------------------------------------------
+
+/** Desde fuera de un módulo solo se importa su index, sus validadores, eventos o tipos. */
+const importacionesProfundas = {
+  group: [
+    "@/modules/*/*",
+    "!@/modules/*/validadores",
+    "!@/modules/*/eventos",
+    "!@/modules/*/tipos",
+    "../*/repositorio",
+    "../*/servicio",
+  ],
+  message:
+    "Importa desde la API pública del módulo (@/modules/<modulo>), no sus archivos internos.",
+};
+
+const soloRepositorios = [
+  {
+    name: "@/lib/prisma",
+    message: "Solo el repositorio de cada módulo usa Prisma. Llama al servicio del módulo.",
+  },
+  {
+    name: "@/generated/prisma/client",
+    message: "Fuera de los repositorios, importa los enums desde @/generated/prisma/enums.",
+  },
+];
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -21,6 +50,22 @@ export default defineConfig([
       "react/no-danger": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}", "server.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { paths: soloRepositorios, patterns: [importacionesProfundas] },
+      ],
+    },
+  },
+  {
+    // Lugares que sí pueden usar Prisma directamente.
+    files: ["src/modules/*/repositorio.ts", "src/lib/prisma.ts", "src/app/api/salud/route.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [importacionesProfundas] }],
     },
   },
   // Desactiva reglas de estilo que chocan con Prettier (debe ir al final).
