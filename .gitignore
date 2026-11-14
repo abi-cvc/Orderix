@@ -7,6 +7,9 @@ out/
 next-env.d.ts
 *.tsbuildinfo
 
+# Cliente de Prisma generado (se crea con npm install / npm run db:generate)
+src/generated/
+
 # Pruebas
 coverage/
 playwright-report/

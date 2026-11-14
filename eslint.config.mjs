@@ -8,7 +8,7 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   // eslint-config-next ya registra el plugin jsx-a11y con pocas reglas;
-  // aquí se activa el conjunto recomendado completo (sección 9 del plan).
+  // aquí se activa el conjunto recomendado completo (WCAG 2.2 AA).
   {
     files: ["**/*.{jsx,tsx}"],
     rules: {
@@ -17,7 +17,7 @@ export default defineConfig([
   },
   {
     rules: {
-      // Prohibido por la sección 8 (XSS).
+      // Prohibido para prevenir XSS (ver docs/seguridad.md).
       "react/no-danger": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
@@ -25,5 +25,12 @@ export default defineConfig([
   },
   // Desactiva reglas de estilo que chocan con Prettier (debe ir al final).
   prettier,
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "next-env.d.ts",
+    "src/generated/**",
+  ]),
 ]);

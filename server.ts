@@ -6,14 +6,19 @@
  * En el segundo bimestre Socket.IO se mueve a su propio servicio.
  */
 import { createServer } from "node:http";
+import { loadEnvConfig } from "@next/env";
 import next from "next";
 import { Server as SocketServer } from "socket.io";
+import { env } from "@/lib/env";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = process.env.HOST ?? "0.0.0.0";
-const port = Number(process.env.PORT ?? 3000);
+// Carga .env antes de validar, con las mismas reglas que Next.js.
+loadEnvConfig(process.cwd(), dev);
 
 async function main(): Promise<void> {
+  // Falla al arrancar si falta o es inválida alguna variable de entorno.
+  const { HOST: hostname, PORT: port } = env();
+
   const app = next({ dev, hostname, port });
   await app.prepare();
 
@@ -43,6 +48,15 @@ async function main(): Promise<void> {
     socket.on("ping", (ack?: (respuesta: string) => void) => {
       if (typeof ack === "function") ack("pong");
     });
+  });
+
+  httpServer.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`El puerto ${port} ya está en uso. Cierra el otro proceso o cambia PORT.`);
+    } else {
+      console.error("Error del servidor HTTP", error);
+    }
+    process.exit(1);
   });
 
   httpServer.listen(port, hostname, () => {

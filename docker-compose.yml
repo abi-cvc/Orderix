@@ -1,0 +1,43 @@
+# Entorno local de Orderix.
+#   Solo la base (para trabajar con `npm run dev`):  docker compose up -d db
+#   Base + aplicación en contenedor:                docker compose up --build
+#
+# Las credenciales son ficticias y solo sirven en tu máquina.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orderix
+      POSTGRES_PASSWORD: orderix_local
+      POSTGRES_DB: orderix
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderix -d orderix"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    image: orderix-app:local
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgresql://orderix:orderix_local@db:5432/orderix
+      DIRECT_URL: postgresql://orderix:orderix_local@db:5432/orderix
+      TRUST_PROXY: "false"
+      # Valor ficticio solo para el entorno local en contenedor.
+      SESSION_SECRET: solo-local-no-usar-en-produccion-0123456789
+    ports:
+      - "3000:3000"
+
+volumes:
+  datos-postgres:

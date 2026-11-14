@@ -1,0 +1,12 @@
+// Esquema de datos de Orderix.
+// Los modelos se agregan en el paso 3 del esqueleto. Después, cualquier cambio
+// se hace con un pull request pequeño que revisa todo el equipo.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

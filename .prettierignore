@@ -3,4 +3,5 @@ node_modules
 coverage
 package-lock.json
 next-env.d.ts
-contexto.txt
+src/generated
+prisma/migrations
