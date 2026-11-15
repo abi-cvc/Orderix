@@ -10,6 +10,8 @@ import { loadEnvConfig } from "@next/env";
 import next from "next";
 import { Server as SocketServer } from "socket.io";
 import { env } from "@/lib/env";
+import { aplicarCabecerasSeguridad } from "@/lib/seguridad/cabeceras";
+import { CABECERA_IP_CLIENTE, calcularIpCliente } from "@/lib/seguridad/peticion";
 import { registrarServidorSocket } from "@/modules/tiempo-real";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -27,7 +29,15 @@ async function main(): Promise<void> {
   const handleUpgrade = app.getUpgradeHandler();
 
   const httpServer = createServer((req, res) => {
-    void handle(req, res);
+    // IP confiable para el límite de intentos (se sobrescribe la que mande el cliente).
+    req.headers[CABECERA_IP_CLIENTE] = calcularIpCliente(req);
+    aplicarCabecerasSeguridad(req, res)
+      .then(() => handle(req, res))
+      .catch((error: unknown) => {
+        console.error("Error al atender la petición", error);
+        if (!res.headersSent) res.statusCode = 500;
+        res.end();
+      });
   });
 
   const io = new SocketServer(httpServer, {

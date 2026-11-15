@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+// Todas las páginas se renderizan en cada petición: la CSP usa un nonce nuevo
+// por petición (ver src/lib/seguridad/cabeceras.ts) y una página pregenerada
+// no lo llevaría, así que el navegador bloquearía sus scripts.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "Orderix",

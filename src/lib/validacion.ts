@@ -1,5 +1,8 @@
-import type { z } from "zod";
+import { z } from "zod";
 import { ErrorValidacion } from "@/lib/errores";
+
+// Mensajes genéricos de Zod en español (los propios de cada esquema ya lo están).
+z.config(z.locales.es());
 
 /**
  * Valida `entrada` con un esquema Zod. Si falla, lanza ErrorValidacion con los
