@@ -63,8 +63,4 @@ Preparar un entorno local aislado con base ficticia, las funciones de autenticac
 4. Mostrar el evento `connect_error` del cliente y comprobar que `connect` no ocurre. Un transporte Engine.IO abierto por sí solo no acredita autenticación de Socket.IO.
 5. Verificar que ese cliente no entra en salas, no recibe historial/eventos y no persiste mensajes. Mostrar luego que iniciar sesión permite conectar.
 
-## Pendientes para revisión
-
-Los pendientes de cada fila y decisión requieren acuerdo del equipo e implementación posterior. Prioridad para la demo: resolver la simulación de correo sin tokens en logs, concretar contratos de rechazo y verificar los tres recorridos. Registrar evidencias con datos ficticios cuando exista el código; este PR solo entrega documentación.
-
-Uso de IA: Codex (OpenAI) apoyó la lectura del contexto, consulta de fuentes oficiales, redacción de la tabla, identificación de pendientes y guion. Alejandro debe revisar y comprender el contenido para la defensa y trasladar esta declaración a la tabla «Uso de IA» del README.
+Uso de IA: Codex (OpenAI) apoyó la lectura del contexto, consulta de fuentes oficiales y redacción de la tabla.
