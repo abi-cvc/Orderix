@@ -66,6 +66,11 @@ Están en el esqueleto y cambian solo con un PR pequeño que revisamos los cuatr
 | `UsuarioSesion` (`id`, `nombre`, `rol`) | `autenticacion` | El usuario que reciben todos los servicios                                 |
 | `requireRole(...roles)`                 | `autenticacion` | Proteger páginas y acciones. Lanza `ErrorNoAutenticado` o `ErrorProhibido` |
 | `obtenerUsuarioSesion()`                | `autenticacion` | El usuario actual o `null` (por ejemplo, para el menú de navegación)       |
+| `iniciarSesion(usuarioId)`              | `autenticacion` | Crear la sesión después de verificar la clave (login)                      |
+| `cerrarSesion()`                        | `autenticacion` | Cerrar la sesión actual (logout)                                           |
+| `cerrarTodasLasSesiones(usuarioId)`     | `autenticacion` | Al restablecer la clave o desactivar un usuario                            |
+| `tokenCsrf()` y `CAMPO_CSRF`            | `autenticacion` | Campo oculto de los formularios que cambian datos                          |
+| `protegerFormulario(formData)`          | `autenticacion` | Primera línea de toda acción que cambia datos (origen + CSRF)              |
 | `publicarEvento(tipo, datos)`           | `tiempo-real`   | Enviar avisos en tiempo real. Tipos en `tiempo-real/eventos.ts`            |
 | `obtenerEstadoPedido(id)`               | `pedidos`       | Estado actual de un pedido (lo usa `calificaciones`)                       |
 
@@ -76,6 +81,32 @@ Eventos que publica `pedidos`:
 | `pedido.creado`          | El mesero envía un pedido                              | Cocina                         |
 | `pedido.estadoCambiado`  | Cualquier cambio de estado                             | Cocina, caja y el mesero dueño |
 | `pedido.alergiaAgregada` | Se agrega o cambia una alergia en un pedido ya enviado | Cocina (como alerta)           |
+
+## Formularios que cambian datos (CSRF)
+
+Todo formulario que crea, edita o borra algo lleva el token CSRF, y su acción de servidor lo comprueba antes de hacer nada:
+
+```tsx
+// En la página (componente de servidor)
+<form action={crearProducto}>
+  <input type="hidden" name={CAMPO_CSRF} value={await tokenCsrf()} />
+  ...
+</form>
+```
+
+```ts
+// En la acción de servidor
+"use server";
+export async function crearProducto(datos: FormData) {
+  await protegerFormulario(datos); // 1. origen y token
+  const usuario = await requireRole("ADMINISTRADOR"); // 2. sesión y rol
+  await servicio.crearProducto(usuario, Object.fromEntries(datos)); // 3. el servicio valida
+}
+```
+
+Las rutas `POST` de `/api` hacen lo mismo y responden los errores con `respuestaDeError(error)` de `@/lib/respuestas`. Login, registro y recuperación no tienen sesión todavía: `protegerFormulario` solo comprueba el origen.
+
+Para el límite de intentos, la IP real del cliente se obtiene con `ipCliente(await headers())` de `@/lib/seguridad/peticion` (ya tiene en cuenta `TRUST_PROXY`).
 
 ## Trabajar sin el módulo de autenticación terminado
 
