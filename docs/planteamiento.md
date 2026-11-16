@@ -2,7 +2,7 @@
 
 **Materia:** Aplicaciones Web Avanzadas, Facultad de Ingeniería de Sistemas, EPN
 **Etapa:** Primer bimestre, monolito con base de datos y chat por WebSocket
-**Equipo:** Alejandro, Carol, Ricardo y Roberth (esqueleto base preparado por Mateo)
+**Equipo:** Alejandro Veloz, Carol Velásquez, Ricardo Villareal y Roberth Jácome
 **Entrega y defensa:** jueves 19 de noviembre de 2026
 
 ---
@@ -102,14 +102,14 @@ Estas funciones no están en la rúbrica del primer bimestre, por lo que se cons
 
 ## 7. Equipo y reparto de responsabilidades
 
-El esqueleto base está a cargo de Mateo. Los cuatro frentes se asignarán entre Alejandro, Carol, Ricardo y Roberth (la asignación está por definir).
+Los cuatro frentes se asignarán entre Alejandro, Carol, Ricardo y Roberth.
 
 | Frente | Descripción | Responsable |
 |--------|-------------|-------------|
-| A. Usuarios y seguridad | Registro, inicio de sesión, recuperación de clave, roles, permisos por ruta, límite de intentos y pruebas de autenticación | Por asignar |
-| B. Menú, calificación y reportes | CRUD de productos con búsqueda y paginación; calificación y reporte por mesero (opcionales) | Por asignar |
-| C. Pedidos | CRUD de pedidos e ítems, alergias, estados, historial, pantalla de cocina y pantalla del cajero (el frente más pesado) | Por asignar |
-| D. Tiempo real y chat | Servidor Socket.IO, autenticación del handshake, sala general, historial, usuarios conectados y notificaciones | Por asignar |
+| A. Usuarios y seguridad | Registro, inicio de sesión, recuperación de clave, roles, permisos por ruta, límite de intentos y pruebas de autenticación | Alejandro |
+| B. Menú, calificación y reportes | CRUD de productos con búsqueda y paginación; calificación y reporte por mesero (opcionales) | Ricardo |
+| C. Pedidos | CRUD de pedidos e ítems, alergias, estados, historial, pantalla de cocina y pantalla del cajero (el frente más pesado) | Carol |
+| D. Tiempo real y chat | Servidor Socket.IO, autenticación del handshake, sala general, historial, usuarios conectados y notificaciones | Roberth |
 
 Cada integrante debe tener commits reales en su propio frente, trabajar en su propia rama y abrir pull requests pequeños revisados por otra persona del equipo.
 
@@ -117,10 +117,10 @@ Cada integrante debe tener commits reales en su propio frente, trabajar en su pr
 
 | Fechas | Actividad | Responsables |
 |--------|-----------|--------------|
-| Jue 12 – vie 13 de nov. | Esqueleto del proyecto | Mateo |
+| Jue 12 – vie 13 de nov. | Esqueleto del proyecto | Carol |
 | Vie 13 – mar 17 | Requisitos, diagramas y presentación | Todos |
-| Vie 13 – lun 16 | Autenticación y roles (A), menú (B), tiempo real y chat (D) | A, B, D |
-| Sáb 14 – mar 17 | Pedidos, cocina y caja (C) | C |
+| Vie 13 – lun 16 | Autenticación y roles (A), menú (B), tiempo real y chat (D) | Alejandro, Ricardo, Roberth |
+| Sáb 14 – mar 17 | Pedidos, cocina y caja (C) | Carol |
 | Lun 16 – mié 18 | Integración, pruebas y despliegue | Todos |
 | Mar 17 | **Puerta 2: funciones congeladas** | Todos |
 | Mié 18 – jue 19 | Ensayo, README y etiqueta `v1.0-b1` | Todos |
