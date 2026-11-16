@@ -15,6 +15,7 @@ const importacionesProfundas = {
     "!@/modules/*/validadores",
     "!@/modules/*/eventos",
     "!@/modules/*/tipos",
+    "!@/modules/*/estados",
     "../*/repositorio",
     "../*/servicio",
   ],
