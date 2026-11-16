@@ -564,3 +564,156 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------ pedidos */
+.titulo-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.titulo-con-accion h1 {
+  margin: 0;
+}
+
+.filtros {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  align-items: end;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+}
+
+.filtros__botones {
+  margin-bottom: 1rem;
+}
+
+/* Alergia: texto "ALERGIA" + símbolo + color, nunca solo color (WCAG 1.4.1). */
+.alergia {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0.375rem 0;
+  padding: 0.375rem 0.625rem;
+  border-left: 4px solid var(--color-alergia-texto);
+  border-radius: var(--radio);
+  background: var(--color-alergia-fondo);
+  color: var(--color-alergia-texto);
+  font-weight: 700;
+}
+
+.marca-alergia {
+  color: var(--color-alergia-texto);
+  font-weight: 700;
+}
+
+.tarjeta--alergia {
+  border: 2px solid var(--color-alergia-texto);
+}
+
+.tarjeta__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.lista-cocina,
+.lista-items,
+.historial {
+  padding-left: 0;
+  list-style: none;
+}
+
+.lista-cocina > li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.lista-items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lista-items .item__titulo {
+  margin-top: 0;
+}
+
+.historial {
+  border-left: 3px solid var(--color-borde-suave);
+  padding-left: 1rem;
+}
+
+.historial li {
+  margin-bottom: 0.5rem;
+}
+
+.resumen-pedido {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  margin: 0 0 1.5rem;
+}
+
+.resumen-pedido dt {
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+}
+
+.resumen-pedido dd {
+  margin: 0.25rem 0 0;
+}
+
+.fila-item {
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+.fila-item legend {
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+
+.campo--corto .campo__control {
+  max-width: 8rem;
+}
+
+.total-estimado {
+  font-size: 1.125rem;
+}
+
+.formulario-accion .aviso {
+  margin: 0.5rem 0 0;
+}
+
+.desplegable > summary {
+  list-style: none;
+}
+
+.desplegable > summary::-webkit-details-marker {
+  display: none;
+}
+
+.desplegable[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
+.desplegable__contenido {
+  padding: 1rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+textarea.campo__control {
+  min-height: 4rem;
+  resize: vertical;
+}
