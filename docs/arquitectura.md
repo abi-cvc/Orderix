@@ -22,17 +22,15 @@ flowchart TB
     S --> RT
     S --> CAL
     MOD --> PRISMA[Prisma]
-    PRISMA --> DB[(PostgreSQL)]
+    PRISMA --> DB[(PostgreSQL en Neon)]
 
     subgraph PROD[Produccion]
         R[Render]
-        NEON[(Neon)]
     end
 
     R -.-> S
-    DB -.-> NEON
 ```
 
 El monolito se despliega en Render. El mismo proceso de `server.ts` ejecuta
 Next.js y Socket.IO; Prisma conecta los módulos con PostgreSQL, alojado en Neon
-en producción.
+en producción. La aplicación utiliza una única base de datos PostgreSQL.

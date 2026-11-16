@@ -17,14 +17,25 @@
 
 - El sistema valida el correo y la clave antes de crear la sesión.
 - Una sesión válida permite acceder solo a las funciones autorizadas para el rol del usuario.
+- La sesión usa una cookie `httpOnly`, `Secure` y `SameSite`, y se renueva al iniciar sesión.
 - Las credenciales incorrectas muestran un mensaje de error sin revelar cuál dato falló.
+
+### Acceder a la pantalla principal
+
+**Como usuario autenticado, quiero acceder a una pantalla principal para utilizar las funciones disponibles para mi rol.**
+
+- La pantalla principal y sus rutas requieren una sesión válida.
+- La navegación muestra solo las opciones autorizadas para mi rol.
+- Desde la pantalla principal puedo acceder al CRUD correspondiente y al chat general.
 
 ### Recuperación de clave
 
 **Como usuario, quiero recuperar mi clave mediante un token para volver a acceder a mi cuenta.**
 
 - El sistema genera un token de recuperación con tiempo de caducidad.
+- El token caduca después de 30 minutos y en la base de datos se almacena únicamente su hash.
 - El token solo puede utilizarse una vez y deja de ser válido al caducar.
+- La respuesta no revela si el correo solicitado está registrado.
 - La nueva clave debe cumplir las reglas de seguridad definidas.
 
 ### Cierre de sesión
@@ -57,6 +68,7 @@
 **Como mesero, quiero agregar ítems, alergias y notas para comunicar correctamente las necesidades de cada mesa.**
 
 - Cada ítem registra cantidad, alergias y notas opcionales.
+- Puedo modificar los ítems, alergias y notas de mi pedido mientras su estado lo permita.
 - Las alergias se muestran de forma resaltada para cocina.
 - Si agrego o modifico una alergia después de enviar el pedido, cocina recibe un aviso en tiempo real.
 
@@ -86,6 +98,13 @@
 
 - El aviso se envía cuando cocina cambia el pedido a `LISTO`.
 - El aviso identifica el pedido y la mesa correspondiente.
+
+### Recibir eventos de pedido
+
+**Como personal autorizado, quiero recibir eventos de los pedidos para conocer sus cambios sin recargar la página.**
+
+- El sistema publica eventos cuando se crea un pedido, cambia su estado o se agrega una alergia.
+- Solo los usuarios autenticados y autorizados reciben los eventos correspondientes.
 
 ## Cocina
 
@@ -133,6 +152,14 @@
 - El cambio a `CANCELADO` registra mi usuario y la fecha y hora.
 - Un pedido cancelado no puede avanzar a otro estado.
 
+### Registrar calificación del servicio (opcional)
+
+**Como cajero, quiero abrir la pantalla de calificación después del cobro para que el cliente valore el servicio.**
+
+- Solo puedo abrir la pantalla para un pedido en estado `COBRADO`.
+- El cliente puede elegir un puntaje de 1 a 5 y ver el texto asociado a cada opción.
+- Cada pedido admite como máximo una calificación.
+
 ## Administrador
 
 ### Gestionar usuarios
@@ -160,9 +187,9 @@
 - **Validación:** los datos se validan en cliente para dar retroalimentación inmediata y en servidor antes de persistirse; la validación del servidor es obligatoria.
 - **Autorización:** las rutas y operaciones protegidas requieren una sesión válida y verifican los permisos del rol en el servidor.
 - **Seguridad web:** las entradas se parametrizan para prevenir SQLi, se escapan o sanitizan para prevenir XSS y se implementa protección CSRF en las operaciones que modifican datos.
-- **WebSocket:** la autenticación y autorización se verifican durante el handshake; no se aceptan conexiones anónimas para eventos privados.
+- **WebSocket:** la autenticación y autorización se verifican durante el handshake; no se aceptan conexiones anónimas para eventos privados. Los mensajes se validan y sanitizan, tienen límites de tamaño y frecuencia, y la conexión usa `wss` en producción.
 - **Rendimiento:** se crean índices para los campos usados en búsquedas, filtros y relaciones; se mide el rendimiento con Lighthouse y se corrigen los incumplimientos relevantes.
-- **Accesibilidad:** la interfaz debe cumplir WCAG 2.1 AA en navegación por teclado, foco visible, etiquetas de formularios, contraste y mensajes de error.
+- **Accesibilidad:** la interfaz debe cumplir WCAG 2.2 AA en navegación por teclado, foco visible, etiquetas de formularios, contraste y mensajes de error.
 
 ## Flujo y reglas del pedido
 

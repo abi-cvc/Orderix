@@ -47,6 +47,11 @@ Un pedido también puede quedar "cancelado".
 | Integración continua | GitHub Actions                                                         |
 | Despliegue           | Render (servicio web Node) y Neon (base de datos)                      |
 
+## Diagramas
+
+- [Arquitectura del monolito](docs/arquitectura.md)
+- [Modelo entidad-relación](docs/modelo-datos.md)
+
 ## Integrantes
 
 | Nombre             | Rol         |
