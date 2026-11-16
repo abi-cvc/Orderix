@@ -1,4 +1,4 @@
-﻿# Historias de usuario de Orderix
+# Historias de usuario de Orderix
 
 ## Historias comunes
 
@@ -6,7 +6,8 @@
 
 **Como usuario, quiero registrarme para poder acceder a Orderix con una cuenta propia.**
 
-- El sistema solicita nombre, correo, clave y rol permitido.
+- El sistema solicita nombre, correo y clave; toda cuenta nueva se crea con rol `MESERO`.
+- Solo un administrador puede asignar o cambiar roles después del registro.
 - El correo no puede estar registrado previamente.
 - La clave se almacena de forma segura y nunca en texto plano.
 
@@ -64,6 +65,10 @@
 **Como mesero, quiero consultar mis pedidos para conocer su estado y atender mis mesas.**
 
 - Solo puedo ver los pedidos que yo registré.
+- Puedo buscar y filtrar mis pedidos por id, mesa y estado.
+- Puedo consultar el detalle de un pedido mediante su id.
+- El listado de pedidos se muestra paginado.
+- Puedo eliminar un pedido mediante cancelación lógica, con una confirmación explícita y respetando su historial.
 - Puedo ver el estado actual y el historial de cambios del pedido.
 - Cada cambio muestra quién lo realizó y la fecha y hora.
 
@@ -109,26 +114,22 @@
 
 ## Cajero
 
-### Cobrar pedido
+### Cobrar y cerrar pedido
 
-**Como cajero, quiero cobrar un pedido para registrar que el cliente ha pagado.**
+**Como cajero, quiero cobrar un pedido para registrar el pago y cerrar su ciclo de atención.**
 
 - Solo puedo cobrar un pedido que esté en estado `ENTREGADO`.
 - El sistema muestra el total del pedido antes de confirmar el cobro.
-- El cambio a `COBRADO` registra mi usuario y la fecha y hora.
-
-### Cerrar pedido
-
-**Como cajero, quiero cerrar los pedidos cobrados para finalizar su ciclo de atención.**
-
-- Un pedido cobrado queda en estado `COBRADO` y registra su fecha de cierre.
+- El cambio a `COBRADO` registra mi usuario, la fecha y hora y la fecha de cierre.
 - Un pedido cerrado no puede volver a modificarse ni avanzar a otro estado.
 
 ### Cancelar pedido
 
-**Como cajero, quiero cancelar un pedido para cerrar correctamente los pedidos que no se atenderán.**
+**Como personal autorizado, quiero cancelar un pedido que no se atenderá para mantener correcto su ciclo de atención.**
 
-- Puedo cancelar un pedido que todavía no esté cobrado.
+- El mesero responsable puede cancelar su pedido únicamente mientras esté en estado `CREADO`, antes de que cocina empiece a prepararlo.
+- El cajero puede cancelar un pedido que todavía no esté cobrado.
+- El sistema solicita confirmación antes de cancelar y registra el motivo cuando se proporciona.
 - El cambio a `CANCELADO` registra mi usuario y la fecha y hora.
 - Un pedido cancelado no puede avanzar a otro estado.
 
@@ -147,8 +148,21 @@
 **Como administrador, quiero gestionar el menú para mantener actualizados los productos que puede solicitar el restaurante.**
 
 - Puedo crear, editar y desactivar productos.
+- Puedo buscar productos por nombre y filtrar por categoría y disponibilidad.
+- El listado de productos se muestra paginado.
+- Puedo consultar el detalle de un producto mediante su id.
+- Puedo eliminar un producto con una confirmación explícita, respetando el historial de pedidos.
 - Cada producto tiene nombre, descripción, categoría y precio.
 - Los productos no disponibles no pueden agregarse a nuevos pedidos.
+
+## Requisitos no funcionales
+
+- **Validación:** los datos se validan en cliente para dar retroalimentación inmediata y en servidor antes de persistirse; la validación del servidor es obligatoria.
+- **Autorización:** las rutas y operaciones protegidas requieren una sesión válida y verifican los permisos del rol en el servidor.
+- **Seguridad web:** las entradas se parametrizan para prevenir SQLi, se escapan o sanitizan para prevenir XSS y se implementa protección CSRF en las operaciones que modifican datos.
+- **WebSocket:** la autenticación y autorización se verifican durante el handshake; no se aceptan conexiones anónimas para eventos privados.
+- **Rendimiento:** se crean índices para los campos usados en búsquedas, filtros y relaciones; se mide el rendimiento con Lighthouse y se corrigen los incumplimientos relevantes.
+- **Accesibilidad:** la interfaz debe cumplir WCAG 2.1 AA en navegación por teclado, foco visible, etiquetas de formularios, contraste y mensajes de error.
 
 ## Flujo y reglas del pedido
 
