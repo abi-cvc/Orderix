@@ -36,6 +36,15 @@ function destinatarios<T extends TipoEvento>(tipo: T, datos: EventosTiempoReal[T
 }
 
 /**
+ * Corta las conexiones WebSocket de un usuario. Llamarla al cerrar sesión,
+ * restablecer la clave o desactivar al usuario: si no, su pestaña seguiría
+ * recibiendo avisos con una sesión que ya no existe.
+ */
+export function desconectarUsuario(usuarioId: number): void {
+  globalTiempoReal.servidorSocket?.in(salaDeUsuario(usuarioId)).disconnectSockets(true);
+}
+
+/**
  * Publica un evento a las pantallas que deben recibirlo.
  * Nunca lanza: si Socket.IO no está listo, el pedido igual se guarda; solo se
  * pierde el aviso (y la pantalla lo verá al recargar).

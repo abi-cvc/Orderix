@@ -12,7 +12,7 @@ import { Server as SocketServer } from "socket.io";
 import { env } from "@/lib/env";
 import { aplicarCabecerasSeguridad } from "@/lib/seguridad/cabeceras";
 import { CABECERA_IP_CLIENTE, calcularIpCliente } from "@/lib/seguridad/peticion";
-import { registrarServidorSocket } from "@/modules/tiempo-real";
+import { configurarConexiones, registrarServidorSocket } from "@/modules/tiempo-real";
 
 const dev = process.env.NODE_ENV !== "production";
 // Carga .env antes de validar, con las mismas reglas que Next.js.
@@ -44,6 +44,10 @@ async function main(): Promise<void> {
     path: "/socket.io",
     // No destruir conexiones de upgrade ajenas: las de recarga en caliente de Next.
     destroyUpgrade: false,
+    // Tamaño máximo de un mensaje: 16 KB (un mensaje de chat tiene máximo 1000 caracteres).
+    maxHttpBufferSize: 16 * 1024,
+    // El cliente se empaqueta con la aplicación; no hace falta servirlo aparte.
+    serveClient: false,
   });
   registrarServidorSocket(io);
 
@@ -54,13 +58,8 @@ async function main(): Promise<void> {
     }
   });
 
-  // Provisional (paso 1): se reemplaza en el paso 6 por el módulo tiempo-real,
-  // con autenticación en el handshake.
-  io.on("connection", (socket) => {
-    socket.on("ping", (ack?: (respuesta: string) => void) => {
-      if (typeof ack === "function") ack("pong");
-    });
-  });
+  // Origen, sesión en el handshake, salas por rol y usuario, límites.
+  configurarConexiones(io);
 
   httpServer.on("error", (error: NodeJS.ErrnoException) => {
     if (error.code === "EADDRINUSE") {

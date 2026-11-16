@@ -11,7 +11,6 @@
  * - Cada inicio de sesión crea un id nuevo (evita la fijación de sesión) y
  *   cerrar sesión lo borra en el servidor, no solo en el navegador.
  */
-import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import type { Rol } from "@/generated/prisma/enums";
 import { env } from "@/lib/env";
@@ -19,9 +18,19 @@ import { ErrorNoAutenticado, ErrorProhibido } from "@/lib/errores";
 import { generarToken, hashearToken } from "@/lib/hash";
 import { CAMPO_CSRF, csrfValido, firmarCsrf } from "@/lib/seguridad/csrf";
 import { origenPermitido } from "@/lib/seguridad/peticion";
-import { nombreCookieSesion, opcionesCookieSesion } from "./cookie";
+import { nombreCookieSesion, opcionesCookieSesion, tokenDesdeCabeceraCookie } from "./cookie";
 import * as repositorio from "./repositorio";
 import type { UsuarioSesion } from "./tipos";
+
+// next/headers se carga recién al usarse (siempre dentro de Next). Si se
+// importara arriba, server.ts lo cargaría al arrancar (vía el handshake del
+// WebSocket) antes de que Next prepare su entorno, y Next se caería.
+async function cookies() {
+  return (await import("next/headers")).cookies();
+}
+async function headers() {
+  return (await import("next/headers")).headers();
+}
 
 /**
  * Crea la sesión del usuario y pone la cookie. Se llama SOLO desde una acción
@@ -56,11 +65,15 @@ export function cerrarTodasLasSesiones(usuarioId: number): Promise<void> {
   return repositorio.borrarSesionesDeUsuario(usuarioId);
 }
 
+interface SesionValida {
+  usuario: UsuarioSesion;
+  expiraEn: Date;
+}
+
 /**
- * Usuario dueño de un token de sesión, o null si no existe, venció o el
- * usuario está desactivado. Lo usa también el handshake del WebSocket.
+ * Sesión de un token, o null si no existe, venció o el usuario está desactivado.
  */
-export async function usuarioDesdeToken(token: string | undefined): Promise<UsuarioSesion | null> {
+async function sesionDesdeToken(token: string | undefined): Promise<SesionValida | null> {
   if (!token) return null;
   const id = hashearToken(token);
   const sesion = await repositorio.buscarSesionConUsuario(id);
@@ -73,7 +86,30 @@ export async function usuarioDesdeToken(token: string | undefined): Promise<Usua
   if (!sesion.usuario.activo) return null;
 
   const { id: usuarioId, nombre, rol } = sesion.usuario;
-  return { id: usuarioId, nombre, rol };
+  return { usuario: { id: usuarioId, nombre, rol }, expiraEn: sesion.expiraEn };
+}
+
+/** Usuario falso de desarrollo (DEV_FAKE_USER_ROLE), o null si está desactivado. */
+async function usuarioFalsoDeDesarrollo(): Promise<UsuarioSesion | null> {
+  const rolFalso = env().DEV_FAKE_USER_ROLE;
+  return rolFalso ? repositorio.buscarPrimerUsuarioActivoPorRol(rolFalso) : null;
+}
+
+/**
+ * Autentica una conexión WebSocket a partir de la cabecera Cookie del
+ * handshake (fuera de Next no existe `cookies()`). Mismas reglas que las
+ * páginas: cookie de sesión y, solo en desarrollo, el usuario falso.
+ * Devuelve también cuándo vence, para cortar la conexión a tiempo.
+ */
+export async function autenticarConexion(
+  cabeceraCookie: string | undefined,
+): Promise<SesionValida | null> {
+  const sesion = await sesionDesdeToken(tokenDesdeCabeceraCookie(cabeceraCookie));
+  if (sesion) return sesion;
+
+  const usuario = await usuarioFalsoDeDesarrollo();
+  if (!usuario) return null;
+  return { usuario, expiraEn: new Date(Date.now() + env().SESSION_TTL_HOURS * 3_600_000) };
 }
 
 async function tokenDeLaPeticion(): Promise<string | undefined> {
@@ -88,12 +124,8 @@ async function tokenDeLaPeticion(): Promise<string | undefined> {
  * `cache` evita consultar la base más de una vez por petición.
  */
 export const obtenerUsuarioSesion = cache(async (): Promise<UsuarioSesion | null> => {
-  const usuario = await usuarioDesdeToken(await tokenDeLaPeticion());
-  if (usuario) return usuario;
-
-  const rolFalso = env().DEV_FAKE_USER_ROLE;
-  if (rolFalso) return repositorio.buscarPrimerUsuarioActivoPorRol(rolFalso);
-  return null;
+  const sesion = await sesionDesdeToken(await tokenDeLaPeticion());
+  return sesion?.usuario ?? usuarioFalsoDeDesarrollo();
 });
 
 /**
