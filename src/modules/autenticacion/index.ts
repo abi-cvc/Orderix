@@ -4,6 +4,7 @@
  */
 export type { UsuarioSesion } from "./tipos";
 export {
+  autenticarConexion,
   cerrarSesion,
   cerrarTodasLasSesiones,
   iniciarSesion,
@@ -11,7 +12,5 @@ export {
   protegerFormulario,
   requireRole,
   tokenCsrf,
-  usuarioDesdeToken,
 } from "./sesion";
-export { tokenDesdeCabeceraCookie } from "./cookie";
 export { CAMPO_CSRF } from "@/lib/seguridad/csrf";

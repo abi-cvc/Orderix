@@ -108,6 +108,15 @@ Las rutas `POST` de `/api` hacen lo mismo y responden los errores con `respuesta
 
 Para el límite de intentos, la IP real del cliente se obtiene con `ipCliente(await headers())` de `@/lib/seguridad/peticion` (ya tiene en cuenta `TRUST_PROXY`).
 
+## Tiempo real (WebSocket)
+
+El servidor ya rechaza las conexiones sin sesión o de otro origen, une cada conexión a la sala de su rol (`rol:COCINA`) y a la suya (`usuario:7`), corta la conexión cuando vence la sesión, limita a 20 eventos cada 10 segundos y a 16 KB por mensaje.
+
+- **Avisos desde un servicio:** `publicarEvento("pedido.creado", datos)`. Los destinatarios ya están definidos en `tiempo-real/publicador.ts`.
+- **En el navegador:** `obtenerSocket()` de `@/lib/socket-cliente` devuelve la conexión compartida. Suscríbete con `socket.on(...)` dentro de un `useEffect` y quita el oyente al salir.
+- **Eventos que envía el navegador (chat):** se registran en `tiempo-real/manejadores.ts`. El autor siempre sale de la sesión, nunca de lo que mande el cliente.
+- **Al cerrar sesión, restablecer la clave o desactivar un usuario:** llamar también a `desconectarUsuario(usuarioId)` de `@/modules/tiempo-real`.
+
 ## Trabajar sin el módulo de autenticación terminado
 
 Mientras el frente A no termine el inicio de sesión, pon en tu `.env`:
