@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import "./globals.css";
 
 // Todas las páginas se renderizan en cada petición: la CSP usa un nonce nuevo
 // por petición (ver src/lib/seguridad/cabeceras.ts) y una página pregenerada
@@ -14,10 +15,22 @@ export const metadata: Metadata = {
   description: "Gestión de pedidos y cocina para restaurantes",
 };
 
+// Sin maximum-scale ni user-scalable=no: el usuario siempre puede hacer zoom.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {/* Primer elemento enfocable de toda página (WCAG 2.4.1). */}
+        <a href="#contenido" className="saltar">
+          Saltar al contenido
+        </a>
+        {children}
+      </body>
     </html>
   );
 }
