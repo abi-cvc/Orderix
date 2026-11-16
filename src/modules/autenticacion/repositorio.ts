@@ -56,3 +56,11 @@ export function buscarPrimerUsuarioActivoPorRol(rol: Rol): Promise<UsuarioSesion
     select: camposSesion,
   });
 }
+
+/** Nombres de varios usuarios (para mostrar quién hizo cada cambio). */
+export function buscarNombres(ids: number[]): Promise<{ id: number; nombre: string }[]> {
+  return prisma().usuario.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, nombre: true },
+  });
+}

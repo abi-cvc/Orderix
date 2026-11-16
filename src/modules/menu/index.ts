@@ -5,4 +5,5 @@
  * Tabla propia: productos.
  * Sigue el ejemplo de src/modules/calificaciones y las reglas de src/modules/README.md.
  */
-export {};
+export type { ProductoParaPedido } from "./repositorio";
+export { listarProductosDisponibles, obtenerProductosParaPedido } from "./servicio";
