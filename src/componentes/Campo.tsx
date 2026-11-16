@@ -1,8 +1,10 @@
 import type { InputHTMLAttributes } from "react";
 
-interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "name"> {
-  /** name del input; también se usa para su id. */
+interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, "name"> {
+  /** name del input. */
   nombre: string;
+  /** id del input (por defecto `campo-<nombre>`). Úsalo si hay varios formularios con el mismo campo. */
+  id?: string;
   etiqueta: string;
   /** Texto de ayuda permanente (formato, mínimo de caracteres...). */
   ayuda?: string;
@@ -18,8 +20,8 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "name
  * Los formularios llevan `noValidate`: la validación es la de Zod (cliente y
  * servidor), con estos mismos mensajes, no la del navegador.
  */
-export function Campo({ nombre, etiqueta, ayuda, errores, ...resto }: Props) {
-  const id = `campo-${nombre}`;
+export function Campo({ nombre, id: idPropio, etiqueta, ayuda, errores, ...resto }: Props) {
+  const id = idPropio ?? `campo-${nombre}`;
   const idAyuda = ayuda ? `${id}-ayuda` : undefined;
   const idError = errores?.length ? `${id}-error` : undefined;
   const describe = [idAyuda, idError].filter(Boolean).join(" ") || undefined;

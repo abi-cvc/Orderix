@@ -37,7 +37,10 @@ const cantidad = z.coerce
   .max(CANTIDAD_MAXIMA, `La cantidad máxima es ${CANTIDAD_MAXIMA}.`);
 
 export const esquemaItem = z.object({
-  productoId: identificador("El producto"),
+  productoId: z.coerce
+    .number({ error: "Elige un producto." })
+    .int("Elige un producto.")
+    .positive("Elige un producto."),
   cantidad,
   alergias: textoOpcional(LARGO_ALERGIAS, "Las alergias"),
   notas: textoOpcional(LARGO_NOTAS_ITEM, "Las notas"),
