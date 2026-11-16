@@ -1,4 +1,4 @@
-# Historias de usuario de Orderix
+﻿# Historias de usuario de Orderix
 
 ## Historias comunes
 
@@ -17,7 +17,6 @@
 
 - El sistema valida el correo y la clave antes de crear la sesión.
 - Una sesión válida permite acceder solo a las funciones autorizadas para el rol del usuario.
-- La sesión usa una cookie `httpOnly`, `Secure` y `SameSite`, y se renueva al iniciar sesión.
 - Las credenciales incorrectas muestran un mensaje de error sin revelar cuál dato falló.
 
 ### Acceder a la pantalla principal
