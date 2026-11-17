@@ -17,8 +17,25 @@ async function main(): Promise<void> {
   const app = next({ dev, hostname, port });
   await app.prepare();
 
-  const httpServer = createNextServer(app);
-  const io = createSocketServer(httpServer);
+  const handle = app.getRequestHandler();
+  const handleUpgrade = app.getUpgradeHandler();
+
+  const httpServer = createServer((req, res) => {
+    void handle(req, res);
+  });
+
+  const io = new SocketServer(httpServer, {
+    path: "/socket.io",
+    // No destruir conexiones de upgrade ajenas: las de recarga en caliente de Next.
+    destroyUpgrade: false,
+  });
+
+  // Upgrades que no son de Socket.IO (por ejemplo, HMR de Next en desarrollo).
+  httpServer.on("upgrade", (req, socket, head) => {
+    if (!req.url?.startsWith("/socket.io")) {
+      void handleUpgrade(req, socket, head);
+    }
+  });
 
   // Provisional (paso 1): se reemplaza en el paso 6 por el módulo tiempo-real,
   // con autenticación en el handshake.
@@ -32,31 +49,6 @@ async function main(): Promise<void> {
     console.log(
       `> Orderix escuchando en http://localhost:${port} (${dev ? "desarrollo" : "producción"})`,
     );
-  });
-}
-
-function createNextServer(app: ReturnType<typeof next>) {
-  const handle = app.getRequestHandler();
-  const handleUpgrade = app.getUpgradeHandler();
-
-  const httpServer = createServer((req, res) => {
-    void handle(req, res);
-  });
-
-  httpServer.on("upgrade", (req, socket, head) => {
-    if (!req.url?.startsWith("/socket.io")) {
-      void handleUpgrade(req, socket, head);
-    }
-  });
-
-  return httpServer;
-}
-
-function createSocketServer(httpServer: ReturnType<typeof createServer>) {
-  return new SocketServer(httpServer, {
-    path: "/socket.io",
-    // No destruir conexiones de upgrade ajenas: las de recarga en caliente de Next.
-    destroyUpgrade: false,
   });
 }
 
