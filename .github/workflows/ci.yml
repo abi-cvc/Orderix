@@ -1,0 +1,117 @@
+# Integración continua de Orderix.
+# Corre en cada PR hacia develop o main y en cada push a esas ramas.
+# Un PR solo se mergea si todos los trabajos terminan en verde.
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# Permisos mínimos: el CI solo lee el código.
+permissions:
+  contents: read
+
+# Si llega un push nuevo al mismo PR, se cancela la ejecución anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  calidad:
+    name: Lint, tipos, formato, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # URL de prueba: el build y las pruebas unitarias no se conectan a ninguna base.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Secreto de sesión aleatorio (solo para esta ejecución)
+        run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Lint (ESLint + jsx-a11y + reglas de módulos)
+        run: npm run lint
+      - name: Tipos (TypeScript estricto)
+        run: npm run typecheck
+      - name: Formato (Prettier)
+        run: npm run format:check
+      - name: Pruebas unitarias
+        run: npm test
+      - name: Build de producción
+        run: npm run build
+
+  accesibilidad:
+    name: Accesibilidad (axe) y extremo a extremo
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: orderix
+          POSTGRES_PASSWORD: orderix_ci
+          POSTGRES_DB: orderix
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U orderix"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://orderix:orderix_ci@localhost:5432/orderix
+      DIRECT_URL: postgresql://orderix:orderix_ci@localhost:5432/orderix
+      CI: "true"
+    steps:
+      - name: Secreto de sesión aleatorio (solo para esta ejecución)
+        run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Migraciones y semilla
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+      # Playwright usa el Google Chrome que ya trae ubuntu-latest (channel: "chrome").
+      - name: Pruebas con navegador (axe, teclado, 320 px)
+        run: npm run test:e2e
+      - name: Reporte de Playwright (si falla)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-playwright
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  seguridad:
+    name: Dependencias y secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Historial completo: el escaneo revisa todos los commits, no solo el último.
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: npm audit (vulnerabilidades altas o críticas)
+        run: npm audit --audit-level=high
+      - name: Escaneo de secretos (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 \
+            git /repo --redact --verbose --no-banner

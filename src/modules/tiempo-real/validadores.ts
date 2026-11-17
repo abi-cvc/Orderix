@@ -24,14 +24,14 @@ export const esquemaNombreSala = z
 
 /**
  * Esquema para el texto del mensaje:
- * 1. Se eliminan caracteres de control (\p{Cc}).
+ * 1. Se eliminan caracteres de control (\p{Cc}) y de formato invisible (\p{Cf}).
  * 2. Se recortan espacios en los extremos (trim).
  * 3. Obligatorio (mínimo 1 carácter tras limpieza).
  * 4. Máximo 1000 caracteres.
  */
 export const esquemaTextoMensaje = z
   .string({ error: "El mensaje debe ser un texto." })
-  .transform((val) => val.replace(/\p{Cc}/gu, "").trim())
+  .transform((val) => val.replace(/[\p{Cc}\p{Cf}]/gu, "").trim())
   .pipe(
     z
       .string()

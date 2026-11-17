@@ -6,4 +6,14 @@
  * Sigue el ejemplo de src/modules/calificaciones y las reglas de src/modules/README.md.
  */
 export type { ProductoParaPedido } from "./repositorio";
-export { listarProductosDisponibles, obtenerProductosParaPedido } from "./servicio";
+export type { ProductoGuardado } from "./servicio";
+export {
+  crearProducto,
+  desactivarProducto,
+  editarProducto,
+  eliminarProducto,
+  listarProductos,
+  listarProductosDisponibles,
+  obtenerProducto,
+  obtenerProductosParaPedido,
+} from "./servicio";

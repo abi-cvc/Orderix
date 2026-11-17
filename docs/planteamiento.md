@@ -81,17 +81,17 @@ Estas funciones no están en la rúbrica del primer bimestre, por lo que se cons
 
 ## 6. Enfoque técnico
 
-| Componente | Tecnología |
-|------------|-----------|
-| Aplicación | Next.js con servidor Node propio (no serverless), TypeScript estricto |
-| Acceso a datos | Prisma con migraciones versionadas |
-| Base de datos | PostgreSQL (Neon en producción, Docker en local) |
-| Tiempo real | Socket.IO montado en el mismo servidor Node |
-| Validación | Zod (mismos esquemas en cliente y servidor) |
-| Pruebas | Vitest, y Playwright con axe |
-| Contenedores | Dockerfile y docker-compose |
-| Integración continua | GitHub Actions |
-| Despliegue | Render (servicio web) y Neon (base de datos) |
+| Componente           | Tecnología                                                            |
+| -------------------- | --------------------------------------------------------------------- |
+| Aplicación           | Next.js con servidor Node propio (no serverless), TypeScript estricto |
+| Acceso a datos       | Prisma con migraciones versionadas                                    |
+| Base de datos        | PostgreSQL (Neon en producción, Docker en local)                      |
+| Tiempo real          | Socket.IO montado en el mismo servidor Node                           |
+| Validación           | Zod (mismos esquemas en cliente y servidor)                           |
+| Pruebas              | Vitest, y Playwright con axe                                          |
+| Contenedores         | Dockerfile y docker-compose                                           |
+| Integración continua | GitHub Actions                                                        |
+| Despliegue           | Render (servicio web) y Neon (base de datos)                          |
 
 **Reglas de arquitectura para facilitar proyecto de segundo bimestre:**
 
@@ -104,24 +104,24 @@ Estas funciones no están en la rúbrica del primer bimestre, por lo que se cons
 
 Los cuatro frentes se asignarán entre Alejandro, Carol, Ricardo y Roberth.
 
-| Frente | Descripción | Responsable |
-|--------|-------------|-------------|
-| A. Usuarios y seguridad | Registro, inicio de sesión, recuperación de clave, roles, permisos por ruta, límite de intentos y pruebas de autenticación | Alejandro |
-| B. Menú, calificación y reportes | CRUD de productos con búsqueda y paginación; calificación y reporte por mesero (opcionales) | Ricardo |
-| C. Pedidos | CRUD de pedidos e ítems, alergias, estados, historial, pantalla de cocina y pantalla del cajero (el frente más pesado) | Carol |
-| D. Tiempo real y chat | Servidor Socket.IO, autenticación del handshake, sala general, historial, usuarios conectados y notificaciones | Roberth |
+| Frente                           | Descripción                                                                                                                | Responsable |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| A. Usuarios y seguridad          | Registro, inicio de sesión, recuperación de clave, roles, permisos por ruta, límite de intentos y pruebas de autenticación | Alejandro   |
+| B. Menú, calificación y reportes | CRUD de productos con búsqueda y paginación; calificación y reporte por mesero (opcionales)                                | Ricardo     |
+| C. Pedidos                       | CRUD de pedidos e ítems, alergias, estados, historial, pantalla de cocina y pantalla del cajero (el frente más pesado)     | Carol       |
+| D. Tiempo real y chat            | Servidor Socket.IO, autenticación del handshake, sala general, historial, usuarios conectados y notificaciones             | Roberth     |
 
 Cada integrante debe tener commits reales en su propio frente, trabajar en su propia rama y abrir pull requests pequeños revisados por otra persona del equipo.
 
 ## 8. Cronograma
 
-| Fechas | Actividad | Responsables |
-|--------|-----------|--------------|
-| Jue 12 – vie 13 de nov. | Esqueleto del proyecto | Carol |
-| Vie 13 – mar 17 | Requisitos, diagramas y presentación | Todos |
-| Vie 13 – lun 16 | Autenticación y roles (A), menú (B), tiempo real y chat (D) | Alejandro, Ricardo, Roberth |
-| Sáb 14 – mar 17 | Pedidos, cocina y caja (C) | Carol |
-| Lun 16 – mié 18 | Integración, pruebas y despliegue | Todos |
-| Mar 17 | **Puerta 2: funciones congeladas** | Todos |
-| Mié 18 – jue 19 | Ensayo, README y etiqueta `v1.0-b1` | Todos |
-| **Jue 19 de nov.** | **Entrega y defensa** (15 min + 5 de preguntas, con demostración en vivo) | Todos |
+| Fechas                  | Actividad                                                                 | Responsables                |
+| ----------------------- | ------------------------------------------------------------------------- | --------------------------- |
+| Jue 12 – vie 13 de nov. | Esqueleto del proyecto                                                    | Carol                       |
+| Vie 13 – mar 17         | Requisitos, diagramas y presentación                                      | Todos                       |
+| Vie 13 – lun 16         | Autenticación y roles (A), menú (B), tiempo real y chat (D)               | Alejandro, Ricardo, Roberth |
+| Sáb 14 – mar 17         | Pedidos, cocina y caja (C)                                                | Carol                       |
+| Lun 16 – mié 18         | Integración, pruebas y despliegue                                         | Todos                       |
+| Mar 17                  | **Puerta 2: funciones congeladas**                                        | Todos                       |
+| Mié 18 – jue 19         | Ensayo, README y etiqueta `v1.0-b1`                                       | Todos                       |
+| **Jue 19 de nov.**      | **Entrega y defensa** (15 min + 5 de preguntas, con demostración en vivo) | Todos                       |
