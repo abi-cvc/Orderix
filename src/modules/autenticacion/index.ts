@@ -4,6 +4,12 @@
  */
 export type { UsuarioSesion } from "./tipos";
 export {
+  registrarUsuario,
+  verificarCredenciales,
+  solicitarRecuperacion,
+  restablecerClave,
+} from "./servicio";
+export {
   autenticarConexion,
   cerrarSesion,
   cerrarTodasLasSesiones,
