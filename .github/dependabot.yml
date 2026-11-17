@@ -1,0 +1,35 @@
+# Dependabot: abre PR semanales hacia develop con actualizaciones de seguridad
+# y versiones menores. Cada PR pasa por el CI antes de mergearse.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Guayaquil
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      # Menores y parches juntos en un solo PR, para no llenar el repo de PR.
+      menores:
+        update-types: [minor, patch]
+    ignore:
+      # Versiones mayores que rompen compatibilidad (ver decisiones del paso 1):
+      # TypeScript 7 y ESLint 10 todavía no son compatibles con el resto del stack.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Guayaquil
+    commit-message:
+      prefix: chore(ci)

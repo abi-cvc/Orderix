@@ -1,0 +1,9 @@
+# En el repositorio todos los archivos de texto se guardan con saltos de línea LF,
+# sin importar si quien commitea usa Windows, macOS o Linux.
+* text=auto eol=lf
+
+# Binarios: nunca se convierten.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
