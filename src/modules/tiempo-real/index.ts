@@ -11,3 +11,4 @@ export type { EventosTiempoReal, TipoEvento } from "./eventos";
 export { publicarEvento, registrarServidorSocket } from "./publicador";
 export { enviarMensaje, obtenerHistorial } from "./servicio";
 export type { MensajeGuardado, SalaGuardada } from "./repositorio";
+export { conectados, crearAlmacenConectados, type UsuarioConectado } from "./conectados";
