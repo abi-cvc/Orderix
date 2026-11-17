@@ -10,6 +10,7 @@ import { usuarioDePagina } from "@/lib/pagina";
 import { tokenCsrf } from "@/modules/autenticacion";
 import { obtenerProducto } from "@/modules/menu";
 import {
+  activarProductoAccion,
   desactivarProductoAccion,
   editarProductoAccion,
   eliminarProductoAccion,
@@ -73,6 +74,20 @@ export default async function ProductoPage({ params, searchParams }: Props) {
                 titulo: `¿Desactivar ${producto.nombre}?`,
                 descripcion: "No aparecerá en nuevos pedidos, pero conservará su historial.",
                 textoConfirmar: "Sí, desactivar",
+              }}
+            />
+          )}
+          {!producto.disponible && (
+            <FormularioAccion
+              accion={activarProductoAccion}
+              campos={{ id: producto.id }}
+              csrf={csrf}
+              texto="Activar producto"
+              variante="secundario"
+              confirmar={{
+                titulo: `¿Activar ${producto.nombre}?`,
+                descripcion: "Volverá a aparecer en los nuevos pedidos.",
+                textoConfirmar: "Sí, activar",
               }}
             />
           )}
