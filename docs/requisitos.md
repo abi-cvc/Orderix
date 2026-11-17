@@ -147,7 +147,7 @@
 
 - El mesero responsable puede cancelar su pedido únicamente mientras esté en estado `CREADO`, antes de que cocina empiece a prepararlo.
 - El cajero puede cancelar un pedido que todavía no esté cobrado.
-- El sistema solicita confirmación antes de cancelar y registra el motivo cuando se proporciona.
+- El sistema solicita confirmación antes de cancelar.
 - El cambio a `CANCELADO` registra mi usuario y la fecha y hora.
 - Un pedido cancelado no puede avanzar a otro estado.
 

@@ -4,91 +4,103 @@
 erDiagram
     USUARIO ||--o{ SESION : tiene
     USUARIO ||--o{ TOKEN_RECUPERACION : solicita
-    USUARIO ||--o{ PEDIDO : registra
-    USUARIO ||--o{ CAMBIO_ESTADO : realiza
-    USUARIO ||--o{ CALIFICACION : registra
-    USUARIO ||--o{ MENSAJE : envia
     PEDIDO ||--o{ ITEM_PEDIDO : contiene
-    PRODUCTO ||--o{ ITEM_PEDIDO : compone
     PEDIDO ||--o{ CAMBIO_ESTADO : tiene
-    PEDIDO ||--o| CALIFICACION : recibe
     SALA ||--o{ MENSAJE : contiene
 
     USUARIO {
-        uuid id PK
+        Int id PK
         string nombre
         string correo UK
         string hashClave
         string rol
         boolean activo
-        datetime creado
+        datetime creadoEn
     }
     SESION {
-        uuid id PK
-        uuid usuario FK
-        datetime expira
+        string id PK
+        Int usuarioId FK
+        datetime expiraEn
+        datetime creadaEn
     }
     TOKEN_RECUPERACION {
-        uuid usuario PK
+        Int id PK
+        Int usuarioId FK
         string hashToken
-        datetime caduca
+        datetime caducaEn
         boolean usado
+        datetime creadoEn
     }
     PRODUCTO {
-        uuid id PK
+        Int id PK
         string nombre
-        string descripcion
+        string descripcion nullable
         string categoria
         decimal precio
         boolean disponible
+        datetime creadoEn
+        datetime actualizadoEn
     }
     PEDIDO {
-        uuid id PK
-        string numeroMesa
-        uuid mesero FK
+        Int id PK
+        Int numeroMesa
+        Int meseroId
+        string meseroNombre
         string estado
         decimal total
-        string notas
-        datetime creado
-        datetime cerrado
+        string notas nullable
+        datetime creadoEn
+        datetime cerradoEn nullable
     }
     ITEM_PEDIDO {
-        uuid id PK
-        uuid pedido FK
-        uuid producto FK
+        Int id PK
+        Int pedidoId FK
+        Int productoId
+        string nombreProducto
         integer cantidad
         decimal precioUnitario
-        string alergias
-        string notas
-        datetime agregado
+        string alergias nullable
+        string notas nullable
+        datetime agregadoEn
     }
     CAMBIO_ESTADO {
-        uuid id PK
-        uuid pedido FK
+        Int id PK
+        Int pedidoId FK
         string estado
-        uuid usuario FK
+        Int usuarioId
         datetime fecha
     }
     CALIFICACION {
-        uuid id PK
-        uuid pedido UK
+        Int id PK
+        Int pedidoId UK
         integer puntaje
-        uuid cajero FK
+        Int cajeroId
         datetime fecha
     }
     SALA {
-        uuid id PK
+        Int id PK
         string nombre
+        datetime creadaEn
     }
     MENSAJE {
-        uuid id PK
-        uuid sala FK
-        uuid autor FK
+        Int id PK
+        Int salaId FK
+        Int autorId
+        string autorNombre
         string texto
-        datetime enviado
+        datetime enviadoEn
     }
 ```
 
+Las líneas entre entidades muestran únicamente relaciones con clave foránea
+dentro del mismo módulo: `sesiones` y `tokens_recuperacion` pertenecen a
+autenticación, `items_pedido` y `cambios_estado` a pedidos, y `mensajes` a
+tiempo-real. Las referencias entre módulos no tienen FK: `meseroId`,
+`productoId`, `usuarioId` en `CambioEstado`, `pedidoId` y `cajeroId` en
+`Calificacion`, y `autorId` se validan mediante los servicios correspondientes.
+Sus copias de lectura son `meseroNombre`, `nombreProducto`, `precioUnitario` y
+`autorNombre`.
+
 La relación entre `PEDIDO` y `CALIFICACION` es opcional y uno a uno:
-un pedido tiene como máximo una calificación. Un pedido puede tener muchos
-ítems y muchos cambios de estado.
+`pedidoId` es único y un pedido tiene como máximo una calificación. Un pedido
+puede tener muchos ítems y muchos cambios de estado.
