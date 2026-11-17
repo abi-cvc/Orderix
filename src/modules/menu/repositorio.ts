@@ -128,6 +128,12 @@ export function desactivar(id: number): Promise<ProductoGuardado> {
     .then(aProductoGuardado);
 }
 
+export function activar(id: number): Promise<ProductoGuardado> {
+  return prisma()
+    .producto.update({ where: { id }, data: { disponible: true }, select: camposCrud })
+    .then(aProductoGuardado);
+}
+
 export function eliminar(id: number): Promise<void> {
   return prisma()
     .producto.delete({ where: { id }, select: { id: true } })

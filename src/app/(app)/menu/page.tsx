@@ -8,7 +8,11 @@ import { moneda } from "@/lib/formato";
 import { numeroDePagina, usuarioDePagina } from "@/lib/pagina";
 import { tokenCsrf } from "@/modules/autenticacion";
 import { listarProductos, type ProductoGuardado } from "@/modules/menu";
-import { desactivarProductoAccion, eliminarProductoAccion } from "./acciones";
+import {
+  activarProductoAccion,
+  desactivarProductoAccion,
+  eliminarProductoAccion,
+} from "./acciones";
 
 export const metadata: Metadata = { title: "Menú" };
 
@@ -60,6 +64,20 @@ export default async function MenuPage({ searchParams }: { searchParams: Paramet
                 titulo: `¿Desactivar ${producto.nombre}?`,
                 descripcion: "No aparecerá en nuevos pedidos, pero conservará su historial.",
                 textoConfirmar: "Sí, desactivar",
+              }}
+            />
+          )}
+          {!producto.disponible && (
+            <FormularioAccion
+              accion={activarProductoAccion}
+              campos={{ id: producto.id }}
+              csrf={csrf}
+              texto="Activar"
+              variante="secundario"
+              confirmar={{
+                titulo: `¿Activar ${producto.nombre}?`,
+                descripcion: "Volverá a aparecer en los nuevos pedidos.",
+                textoConfirmar: "Sí, activar",
               }}
             />
           )}
