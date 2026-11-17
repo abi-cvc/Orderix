@@ -687,6 +687,25 @@ a {
   max-width: 8rem;
 }
 
+/* ------------------------------------------------ autenticación */
+.autenticacion {
+  width: 100%;
+  max-width: 36rem;
+}
+
+.autenticacion__enlaces {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 1rem;
+}
+
+.autenticacion__enlaces a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--objetivo-minimo);
+}
+
 .total-estimado {
   font-size: 1.125rem;
 }
