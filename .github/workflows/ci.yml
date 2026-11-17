@@ -89,7 +89,7 @@ jobs:
         run: npm run test:e2e
       - name: Reporte de Playwright (si falla)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reporte-playwright
           path: |
