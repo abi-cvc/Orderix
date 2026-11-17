@@ -8,6 +8,7 @@
 export type { ProductoParaPedido } from "./repositorio";
 export type { ProductoGuardado } from "./servicio";
 export {
+  activarProducto,
   crearProducto,
   desactivarProducto,
   editarProducto,

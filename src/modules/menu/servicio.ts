@@ -96,6 +96,14 @@ export async function desactivarProducto(usuario: UsuarioSesion, entrada: unknow
   await repositorio.desactivar(id);
 }
 
+export async function activarProducto(usuario: UsuarioSesion, entrada: unknown): Promise<void> {
+  exigirAdministrador(usuario);
+  const { id } = validar(esquemaProductoId, { id: entrada });
+  const existente = await repositorio.buscarPorId(id);
+  if (!existente) throw new ErrorNoEncontrado("El producto no existe.");
+  await repositorio.activar(id);
+}
+
 export async function eliminarProducto(usuario: UsuarioSesion, entrada: unknown): Promise<void> {
   exigirAdministrador(usuario);
   const { id } = validar(esquemaProductoId, { id: entrada });

@@ -55,3 +55,9 @@ Un pedido también puede quedar "cancelado".
 | Alejandro Veloz    | Por asignar |
 | Roberth Jacome     | Por asignar |
 | Ricardo Villarreal | Por asignar |
+
+## Uso de IA
+
+| Actividad     | Uso de IA                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| CRUD del menú | Se utilizó GitHub Copilot para implementar el CRUD de productos, sus validaciones y la interfaz. |
