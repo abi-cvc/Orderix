@@ -39,6 +39,7 @@ function preparar() {
     cambio?: Parameters<DependenciasAutenticacion["repositorio"]["consumirTokenYCambiarClave"]>[0];
     enlace?: string;
     sesionesCerradas?: number;
+    usuarioDesconectado?: number;
   } = {};
   const deps: DependenciasAutenticacion = {
     repositorio: {
@@ -65,6 +66,10 @@ function preparar() {
     hashearToken,
     cerrarTodasLasSesiones: async (id) => {
       guardado.sesionesCerradas = id;
+    },
+    desconectarUsuario: (id) => {
+      assert.equal(guardado.sesionesCerradas, id);
+      guardado.usuarioDesconectado = id;
     },
     ahora: () => new Date("2026-11-16T12:00:00Z"),
     obtenerIpCliente: async () => "192.0.2.1",
@@ -172,7 +177,7 @@ test("recuperación responde igual para correo existente, desconocido e inactivo
   }
 });
 
-test("restablecer pasa los hashes al repositorio y cierra todas las sesiones", async () => {
+test("restablecer guarda los hashes, cierra las sesiones y después desconecta al usuario", async () => {
   const { deps, guardado } = preparar();
   await restablecerClave({ token, clave: "clave nueva segura" }, deps);
   assert.deepEqual(guardado.cambio, {
@@ -181,6 +186,7 @@ test("restablecer pasa los hashes al repositorio y cierra todas las sesiones", a
     ahora: deps.ahora(),
   });
   assert.equal(guardado.sesionesCerradas, usuario.id);
+  assert.equal(guardado.usuarioDesconectado, usuario.id);
 });
 
 test("token inválido, vencido o usado rechaza el cambio sin llamar al cierre de sesiones", async () => {
@@ -191,6 +197,7 @@ test("token inválido, vencido o usado rechaza el cambio sin llamar al cierre de
     ErrorValidacion,
   );
   assert.equal(guardado.sesionesCerradas, undefined);
+  assert.equal(guardado.usuarioDesconectado, undefined);
   await assert.rejects(
     restablecerClave({ token: "", clave: "clave nueva segura" }, deps),
     ErrorValidacion,
