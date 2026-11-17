@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { Rol } from "@/generated/prisma/enums";
 import { ErrorNoAutenticado, ErrorValidacion } from "@/lib/errores";
 import { generarToken, hashearClave, hashearToken, verificarClave } from "@/lib/hash";
+import { crearLimitadorIntentos, ErrorLimiteIntentos } from "@/lib/seguridad/limite";
 import {
   registrarUsuario,
   restablecerClave,
@@ -66,6 +67,8 @@ function preparar() {
       guardado.sesionesCerradas = id;
     },
     ahora: () => new Date("2026-11-16T12:00:00Z"),
+    obtenerIpCliente: async () => "192.0.2.1",
+    limitadorIntentos: crearLimitadorIntentos(),
     obtenerUrlApp: () => "https://orderix.example",
     imprimirEnlace: (enlace) => {
       guardado.enlace = enlace;
@@ -192,4 +195,122 @@ test("token inválido, vencido o usado rechaza el cambio sin llamar al cierre de
     restablecerClave({ token: "", clave: "clave nueva segura" }, deps),
     ErrorValidacion,
   );
+});
+
+test("cinco usuarios distintos entran bien desde la misma IP y el sexto también entra", async () => {
+  const { deps } = preparar();
+  let consultas = 0;
+  deps.repositorio.buscarUsuarioPorCorreo = async (correo) => {
+    consultas += 1;
+    return {
+      ...usuario,
+      id: Number(correo.match(/usuario(\d+)/)?.[1]) + 1,
+      hashClave: "hash anterior",
+      activo: true,
+    };
+  };
+  for (let i = 0; i < 6; i++) {
+    const resultado = await verificarCredenciales(
+      { correo: `usuario${i}@example.com`, clave: "clave correcta" },
+      deps,
+    );
+    assert.equal(resultado.id, i + 1);
+  }
+  assert.equal(consultas, 6);
+});
+
+test("un login correcto reinicia los fallos del correo", async () => {
+  const { deps } = preparar();
+  const entrada = { correo: " ANA@EXAMPLE.COM ", clave: "incorrecta" };
+  for (let i = 0; i < 4; i++)
+    await assert.rejects(verificarCredenciales(entrada, deps), ErrorNoAutenticado);
+  await verificarCredenciales({ ...entrada, clave: "clave correcta" }, deps);
+  for (let i = 0; i < 4; i++)
+    await assert.rejects(verificarCredenciales(entrada, deps), ErrorNoAutenticado);
+  await verificarCredenciales({ ...entrada, clave: "clave correcta" }, deps);
+});
+
+test("cinco logins fallidos bloquean el correo antes de consultar la base o verificar la clave", async () => {
+  for (const caso of ["clave", "correo", "inactivo"]) {
+    const { deps } = preparar();
+    let consultas = 0;
+    let verificaciones = 0;
+    deps.repositorio.buscarUsuarioPorCorreo = async () => {
+      consultas += 1;
+      return caso === "correo"
+        ? null
+        : { ...usuario, hashClave: "hash anterior", activo: caso !== "inactivo" };
+    };
+    deps.verificarClave = async () => {
+      verificaciones += 1;
+      return caso !== "clave";
+    };
+    for (let i = 0; i < 5; i++) {
+      await assert.rejects(
+        verificarCredenciales({ correo: "ana@example.com", clave: "cualquiera" }, deps),
+        ErrorNoAutenticado,
+      );
+    }
+    deps.obtenerIpCliente = async () => "192.0.2.99";
+    await assert.rejects(
+      verificarCredenciales({ correo: "ana@example.com", clave: "clave correcta" }, deps),
+      ErrorLimiteIntentos,
+    );
+    assert.equal(consultas, 5);
+    assert.equal(verificaciones, 5);
+  }
+});
+
+test("login limita 30 fallos por IP entre distintos correos sin borrar el acumulado con un éxito", async () => {
+  const { deps } = preparar();
+  for (let i = 0; i < 30; i++) {
+    await assert.rejects(
+      verificarCredenciales({ correo: `usuario${i}@example.com`, clave: "incorrecta" }, deps),
+      ErrorNoAutenticado,
+    );
+    if (i === 15)
+      await verificarCredenciales({ correo: "valido@example.com", clave: "clave correcta" }, deps);
+  }
+  await assert.rejects(
+    verificarCredenciales({ correo: "nuevo@example.com", clave: "clave correcta" }, deps),
+    ErrorLimiteIntentos,
+  );
+});
+
+test("recuperación limita correos desconocidos y existentes antes de consultar la base", async () => {
+  for (const existe of [true, false]) {
+    const { deps } = preparar();
+    let consultas = 0;
+    deps.repositorio.buscarUsuarioPorCorreo = async () => {
+      consultas += 1;
+      return existe ? { ...usuario, hashClave: "hash anterior", activo: true } : null;
+    };
+    for (let i = 0; i < 5; i++) {
+      deps.obtenerIpCliente = async () => `192.0.2.${i}`;
+      await solicitarRecuperacion({ correo: " ANA@EXAMPLE.COM " }, deps);
+    }
+    deps.obtenerIpCliente = async () => "192.0.2.99";
+    await assert.rejects(
+      solicitarRecuperacion({ correo: "ana@example.com" }, deps),
+      ErrorLimiteIntentos,
+    );
+    assert.equal(consultas, 5);
+  }
+});
+
+test("recuperación permite seis correos desde la misma IP y bloquea después de 30 solicitudes", async () => {
+  const { deps } = preparar();
+  let consultas = 0;
+  deps.repositorio.buscarUsuarioPorCorreo = async () => {
+    consultas += 1;
+    return null;
+  };
+  for (let i = 0; i < 30; i++) {
+    await solicitarRecuperacion({ correo: `usuario${i}@example.com` }, deps);
+  }
+  await assert.rejects(
+    solicitarRecuperacion({ correo: "nuevo@example.com" }, deps),
+    ErrorLimiteIntentos,
+  );
+  assert.equal(consultas, 30);
 });

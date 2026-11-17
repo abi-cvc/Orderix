@@ -4,6 +4,8 @@ import { env } from "@/lib/env";
 import { ErrorNoAutenticado, ErrorValidacion } from "@/lib/errores";
 import { generarToken, hashearClave, hashearToken, verificarClave } from "@/lib/hash";
 import { validar } from "@/lib/validacion";
+import { limitadorIntentos } from "@/lib/seguridad/limite";
+import { ipCliente } from "@/lib/seguridad/peticion";
 import * as repositorio from "./repositorio";
 import { cerrarTodasLasSesiones } from "./sesion";
 import type { UsuarioSesion } from "./tipos";
@@ -30,6 +32,8 @@ export interface DependenciasAutenticacion {
   ahora: () => Date;
   obtenerUrlApp: () => string;
   imprimirEnlace: (enlace: string) => void;
+  obtenerIpCliente: () => Promise<string>;
+  limitadorIntentos: typeof limitadorIntentos;
 }
 
 const dependenciasReales: DependenciasAutenticacion = {
@@ -43,6 +47,12 @@ const dependenciasReales: DependenciasAutenticacion = {
   obtenerUrlApp: () => env().APP_URL,
   // En el primer bimestre el envío de correo se simula exclusivamente en consola.
   imprimirEnlace: (enlace) => console.info("Enlace de recuperación de clave:", enlace),
+  obtenerIpCliente: async () => {
+    // Carga diferida, como en sesion.ts: este módulo también lo importa server.ts.
+    const { headers } = await import("next/headers");
+    return ipCliente(await headers());
+  },
+  limitadorIntentos,
 };
 
 export async function registrarUsuario(
@@ -64,13 +74,17 @@ export async function verificarCredenciales(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<UsuarioSesion> {
   const datos = validar(esquemaLogin, entrada);
+  const ip = await deps.obtenerIpCliente();
+  deps.limitadorIntentos.comprobarBloqueo("login", ip, datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   // También ejecuta Argon2 si el correo no existe, para reducir diferencias de tiempo.
   const hash = usuario?.hashClave ?? (await deps.hashearClave(deps.generarToken()));
   const claveValida = await deps.verificarClave(hash, datos.clave);
   if (!usuario || !claveValida || !usuario.activo) {
+    deps.limitadorIntentos.registrarIntento("login", ip, datos.correo);
     throw new ErrorNoAutenticado("Correo o clave incorrectos.");
   }
+  deps.limitadorIntentos.reiniciarCorreoLogin(datos.correo);
   return { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol };
 }
 
@@ -79,6 +93,9 @@ export async function solicitarRecuperacion(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<{ mensaje: string }> {
   const datos = validar(esquemaSolicitarRecuperacion, entrada);
+  const ip = await deps.obtenerIpCliente();
+  deps.limitadorIntentos.comprobarBloqueo("recuperacion", ip, datos.correo);
+  deps.limitadorIntentos.registrarIntento("recuperacion", ip, datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   if (usuario?.activo) {
     const token = deps.generarToken();
