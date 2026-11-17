@@ -1,0 +1,719 @@
+/*
+ * Estilos globales de Orderix. Mobile-first: los estilos base son para celular
+ * y se amplían en 640px (tablet) y 1024px (PC).
+ *
+ * Colores: usa SIEMPRE estas variables. Los pares texto/fondo están elegidos
+ * para un contraste de al menos 4,5:1 (texto) y 3:1 (bordes y foco), WCAG 2.2 AA.
+ */
+:root {
+  --color-fondo: #ffffff;
+  --color-superficie: #f4f5f7;
+  --color-texto: #1b1d21; /* 16,9:1 sobre fondo */
+  --color-texto-suave: #4a4f57; /* 8,2:1 sobre fondo */
+  --color-borde: #6c727c; /* 4,9:1: bordes de campos */
+  --color-borde-suave: #d4d7dc; /* solo separadores decorativos */
+
+  --color-primario: #0b4f8a; /* 8,4:1 con texto blanco */
+  --color-primario-hover: #083b68;
+  --color-peligro: #a8231b; /* 6,9:1 con texto blanco */
+  --color-peligro-hover: #861b14;
+  --color-exito: #1d6b32; /* 6,4:1 */
+  --color-aviso: #7a4a00; /* 6,6:1 */
+
+  --color-alergia-texto: #8a1c00;
+  --color-alergia-fondo: #fdece7;
+  --color-foco: #0b4f8a;
+
+  --radio: 6px;
+  --espacio: 1rem;
+  --objetivo-minimo: 44px; /* tamaño táctil (WCAG pide 24px; meta 44px) */
+  --ancho-contenido: 72rem;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; /* respeta el tamaño de letra elegido por el usuario */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+  color: var(--color-texto);
+  background: var(--color-fondo);
+  overflow-wrap: break-word;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.375rem;
+}
+
+a {
+  color: var(--color-primario);
+}
+
+/* Foco visible y nunca tapado (WCAG 2.4.7, 2.4.11). */
+:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+[id] {
+  scroll-margin-top: 5rem; /* el encabezado fijo no tapa el destino */
+}
+
+/* ------------------------------------------------ saltar al contenido */
+.saltar {
+  position: absolute;
+  left: 0.5rem;
+  top: -100%;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--color-primario);
+  color: #fff;
+  border-radius: var(--radio);
+}
+
+.saltar:focus {
+  top: 0.5rem;
+}
+
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------ estructura */
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-fondo);
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.encabezado__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  max-width: var(--ancho-contenido);
+  margin: 0 auto;
+  padding: 0.5rem var(--espacio);
+}
+
+.marca {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-texto);
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.usuario-actual {
+  order: 4;
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+}
+
+.contenido {
+  max-width: var(--ancho-contenido);
+  margin: 0 auto;
+  padding: 1.5rem var(--espacio) 3rem;
+}
+
+.contenido:focus {
+  outline: none; /* recibe el foco al saltar; no hace falta el contorno */
+}
+
+.pie {
+  border-top: 1px solid var(--color-borde-suave);
+  background: var(--color-superficie);
+}
+
+.pie__interior {
+  max-width: var(--ancho-contenido);
+  margin: 0 auto;
+  padding: 1rem var(--espacio);
+  font-size: 0.9375rem;
+}
+
+/* ------------------------------------------------ navegación */
+.nav__alternar {
+  order: 2;
+}
+
+.nav {
+  order: 3;
+  flex-basis: 100%;
+}
+
+.nav[data-abierta="false"] {
+  display: none;
+}
+
+.nav__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav__enlace {
+  display: flex;
+  align-items: center;
+  min-height: var(--objetivo-minimo);
+  padding: 0 0.75rem;
+  border-radius: var(--radio);
+  color: var(--color-texto);
+  text-decoration: none;
+}
+
+.nav__enlace:hover {
+  background: var(--color-superficie);
+}
+
+.nav__enlace[aria-current="page"] {
+  font-weight: 700;
+  color: var(--color-primario);
+  box-shadow: inset 4px 0 0 var(--color-primario);
+}
+
+@media (min-width: 1024px) {
+  /* .boton.nav__alternar: más específico que .boton, que define display. */
+  .boton.nav__alternar {
+    display: none;
+  }
+
+  .usuario-actual {
+    order: 2;
+    flex-basis: auto;
+  }
+
+  .nav,
+  .nav[data-abierta="false"] {
+    display: block;
+    order: 1;
+    flex-basis: auto;
+  }
+
+  .nav__lista {
+    flex-direction: row;
+    padding: 0;
+  }
+
+  .nav__enlace[aria-current="page"] {
+    box-shadow: inset 0 -3px 0 var(--color-primario);
+  }
+}
+
+/* ------------------------------------------------ botones */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--objetivo-minimo);
+  min-width: var(--objetivo-minimo);
+  padding: 0.5rem 1rem;
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton--primario {
+  background: var(--color-primario);
+  color: #fff;
+}
+
+.boton--primario:hover {
+  background: var(--color-primario-hover);
+}
+
+.boton--secundario {
+  background: var(--color-fondo);
+  color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+
+.boton--secundario:hover {
+  background: var(--color-superficie);
+}
+
+.boton--peligro {
+  background: var(--color-peligro);
+  color: #fff;
+}
+
+.boton--peligro:hover {
+  background: var(--color-peligro-hover);
+}
+
+.boton:disabled,
+.boton[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.grupo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ------------------------------------------------ formularios */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.campo__etiqueta {
+  font-weight: 600;
+}
+
+.campo__ayuda {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+}
+
+.campo__control {
+  min-height: var(--objetivo-minimo);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  font: inherit;
+  color: inherit;
+  background: var(--color-fondo);
+  width: 100%;
+  max-width: 32rem;
+}
+
+.campo__control[aria-invalid="true"] {
+  border: 2px solid var(--color-peligro);
+}
+
+.campo__error {
+  display: flex;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-peligro);
+}
+
+/* ------------------------------------------------ avisos */
+.aviso {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid currentColor;
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  margin-bottom: 1rem;
+}
+
+.aviso:empty {
+  display: none;
+}
+
+.aviso--exito {
+  color: var(--color-exito);
+}
+
+.aviso--error {
+  color: var(--color-peligro);
+}
+
+.aviso--alergia {
+  color: var(--color-alergia-texto);
+  background: var(--color-alergia-fondo);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------ diálogo */
+.dialogo {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: none;
+  border-radius: var(--radio);
+  color: var(--color-texto);
+}
+
+.dialogo::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+.dialogo .grupo-botones {
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+/* ------------------------------------------------ etiquetas de estado */
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado--CREADO {
+  color: var(--color-texto-suave);
+}
+.estado--EN_PREPARACION {
+  color: var(--color-aviso);
+}
+.estado--LISTO {
+  color: var(--color-exito);
+}
+.estado--ENTREGADO {
+  color: var(--color-primario);
+}
+.estado--COBRADO {
+  color: var(--color-texto);
+}
+.estado--CANCELADO {
+  color: var(--color-peligro);
+}
+
+/* ------------------------------------------------ tabla → tarjetas */
+.tabla-adaptable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-adaptable caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Celular: cada fila es una tarjeta y cada celda muestra su encabezado. */
+.tabla-adaptable,
+.tabla-adaptable caption,
+.tabla-adaptable tbody {
+  display: block;
+}
+
+.tabla-adaptable thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.tabla-adaptable tr {
+  display: block;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+.tabla-adaptable td {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.tabla-adaptable td::before {
+  content: attr(data-etiqueta);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+}
+
+@media (min-width: 640px) {
+  .tabla-adaptable {
+    display: table;
+  }
+
+  .tabla-adaptable caption {
+    display: table-caption;
+  }
+
+  .tabla-adaptable tbody {
+    display: table-row-group;
+  }
+
+  .tabla-adaptable thead {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+  }
+
+  .tabla-adaptable tr {
+    display: table-row;
+    border: none;
+  }
+
+  .tabla-adaptable th,
+  .tabla-adaptable td {
+    display: table-cell;
+    text-align: left;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-borde-suave);
+  }
+
+  .tabla-adaptable th {
+    background: var(--color-superficie);
+  }
+
+  .tabla-adaptable td::before {
+    content: none;
+  }
+}
+
+/* ------------------------------------------------ paginación */
+.paginacion__lista {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.paginacion__actual {
+  padding: 0 0.5rem;
+}
+
+/* ------------------------------------------------ tarjetas de inicio */
+.rejilla {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+  background: var(--color-fondo);
+}
+
+.tarjeta h2,
+.tarjeta h3 {
+  font-size: 1.125rem;
+}
+
+.seccion {
+  margin-bottom: 2.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------ pedidos */
+.titulo-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.titulo-con-accion h1 {
+  margin: 0;
+}
+
+.filtros {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  align-items: end;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+}
+
+.filtros__botones {
+  margin-bottom: 1rem;
+}
+
+/* Alergia: texto "ALERGIA" + símbolo + color, nunca solo color (WCAG 1.4.1). */
+.alergia {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0.375rem 0;
+  padding: 0.375rem 0.625rem;
+  border-left: 4px solid var(--color-alergia-texto);
+  border-radius: var(--radio);
+  background: var(--color-alergia-fondo);
+  color: var(--color-alergia-texto);
+  font-weight: 700;
+}
+
+.marca-alergia {
+  color: var(--color-alergia-texto);
+  font-weight: 700;
+}
+
+.tarjeta--alergia {
+  border: 2px solid var(--color-alergia-texto);
+}
+
+.tarjeta__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.lista-cocina,
+.lista-items,
+.historial {
+  padding-left: 0;
+  list-style: none;
+}
+
+.lista-cocina > li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-borde-suave);
+}
+
+.lista-items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lista-items .item__titulo {
+  margin-top: 0;
+}
+
+.historial {
+  border-left: 3px solid var(--color-borde-suave);
+  padding-left: 1rem;
+}
+
+.historial li {
+  margin-bottom: 0.5rem;
+}
+
+.resumen-pedido {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  margin: 0 0 1.5rem;
+}
+
+.resumen-pedido dt {
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+}
+
+.resumen-pedido dd {
+  margin: 0.25rem 0 0;
+}
+
+.fila-item {
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+.fila-item legend {
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+
+.campo--corto .campo__control {
+  max-width: 8rem;
+}
+
+.total-estimado {
+  font-size: 1.125rem;
+}
+
+.formulario-accion .aviso {
+  margin: 0.5rem 0 0;
+}
+
+.desplegable > summary {
+  list-style: none;
+}
+
+.desplegable > summary::-webkit-details-marker {
+  display: none;
+}
+
+.desplegable[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
+.desplegable__contenido {
+  padding: 1rem;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio);
+}
+
+textarea.campo__control {
+  min-height: 4rem;
+  resize: vertical;
+}

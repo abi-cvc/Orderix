@@ -8,8 +8,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { env } from "@/lib/env";
 
-/** Nombre del campo oculto que llevan los formularios que cambian datos. */
-export const CAMPO_CSRF = "csrf";
+export { CAMPO_CSRF } from "./constantes";
 
 export function firmarCsrf(idSesion: string): string {
   return createHmac("sha256", env().SESSION_SECRET).update(`csrf:${idSesion}`).digest("base64url");

@@ -117,6 +117,32 @@ El servidor ya rechaza las conexiones sin sesión o de otro origen, une cada con
 - **Eventos que envía el navegador (chat):** se registran en `tiempo-real/manejadores.ts`. El autor siempre sale de la sesión, nunca de lo que mande el cliente.
 - **Al cerrar sesión, restablecer la clave o desactivar un usuario:** llamar también a `desconectarUsuario(usuarioId)` de `@/modules/tiempo-real`.
 
+## Pantallas (interfaz)
+
+Las pantallas con sesión van en `src/app/(app)/<ruta>/page.tsx` y heredan el encabezado, la navegación por rol y el pie con ayuda. La pantalla `/ejemplo` muestra cada componente funcionando: cópiala como punto de partida.
+
+```tsx
+export default async function CocinaPage({ searchParams }: { searchParams: Promise<...> }) {
+  const usuario = await usuarioDePagina("COCINA"); // sin sesión → /login; otro rol → 404
+  const pagina = numeroDePagina((await searchParams).pagina);
+  // ...pedir al servicio SOLO la página actual (FILAS_POR_PAGINA)
+}
+```
+
+| Componente         | Para qué                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| `TablaAdaptable`   | Listados: tabla en PC, tarjetas en celular                             |
+| `Paginacion`       | Enlaces Anterior / Siguiente con `?pagina=N`                           |
+| `Campo`            | Input con etiqueta, ayuda y error enlazados                            |
+| `Boton`            | Botón de 44 px (`primario`, `secundario`, `peligro`)                   |
+| `ConfirmarYEnviar` | Confirmación antes de eliminar, cancelar o cobrar                      |
+| `Anuncio`          | Avisos para lector de pantalla (`estado`, `exito`, `error`, `alergia`) |
+| `EtiquetaEstado`   | Estado del pedido con texto y símbolo                                  |
+
+- Formularios: `noValidate`, `useActionState` y la acción devuelve `estadoDeError(error)` de `@/lib/formularios` (ver `ejemplo/acciones.ts`).
+- Una pantalla nueva se agrega al menú en `src/lib/navegacion.ts` (PR revisado por los cuatro).
+- Colores: solo las variables de `src/app/globals.css`; ya cumplen el contraste AA.
+
 ## Trabajar sin el módulo de autenticación terminado
 
 Mientras el frente A no termine el inicio de sesión, pon en tu `.env`:
