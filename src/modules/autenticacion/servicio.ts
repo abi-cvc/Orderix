@@ -4,6 +4,8 @@ import { env } from "@/lib/env";
 import { ErrorNoAutenticado, ErrorValidacion } from "@/lib/errores";
 import { generarToken, hashearClave, hashearToken, verificarClave } from "@/lib/hash";
 import { validar } from "@/lib/validacion";
+import { limitarIntentos } from "@/lib/seguridad/limite";
+import { ipCliente } from "@/lib/seguridad/peticion";
 import * as repositorio from "./repositorio";
 import { cerrarTodasLasSesiones } from "./sesion";
 import type { UsuarioSesion } from "./tipos";
@@ -30,6 +32,8 @@ export interface DependenciasAutenticacion {
   ahora: () => Date;
   obtenerUrlApp: () => string;
   imprimirEnlace: (enlace: string) => void;
+  obtenerIpCliente: () => Promise<string>;
+  limitarIntentos: typeof limitarIntentos;
 }
 
 const dependenciasReales: DependenciasAutenticacion = {
@@ -43,6 +47,12 @@ const dependenciasReales: DependenciasAutenticacion = {
   obtenerUrlApp: () => env().APP_URL,
   // En el primer bimestre el envío de correo se simula exclusivamente en consola.
   imprimirEnlace: (enlace) => console.info("Enlace de recuperación de clave:", enlace),
+  obtenerIpCliente: async () => {
+    // Carga diferida, como en sesion.ts: este módulo también lo importa server.ts.
+    const { headers } = await import("next/headers");
+    return ipCliente(await headers());
+  },
+  limitarIntentos,
 };
 
 export async function registrarUsuario(
@@ -64,6 +74,7 @@ export async function verificarCredenciales(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<UsuarioSesion> {
   const datos = validar(esquemaLogin, entrada);
+  deps.limitarIntentos("login", await deps.obtenerIpCliente(), datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   // También ejecuta Argon2 si el correo no existe, para reducir diferencias de tiempo.
   const hash = usuario?.hashClave ?? (await deps.hashearClave(deps.generarToken()));
@@ -79,6 +90,7 @@ export async function solicitarRecuperacion(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<{ mensaje: string }> {
   const datos = validar(esquemaSolicitarRecuperacion, entrada);
+  deps.limitarIntentos("recuperacion", await deps.obtenerIpCliente(), datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   if (usuario?.activo) {
     const token = deps.generarToken();

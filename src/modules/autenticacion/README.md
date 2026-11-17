@@ -20,15 +20,25 @@ que no contiene dependencias de servidor.
 
 El enlace usa `APP_URL` y la ruta `/restablecer-clave?token=...`. Esta iteración
 implementa los servicios, no las páginas; el formulario futuro de esa ruta debe
-enviar `token` y `clave`. Las acciones deberán aplicar `protegerFormulario` y
-el límite de intentos existente antes de llamar al servicio.
+enviar `token` y `clave`. Las acciones deberán aplicar `protegerFormulario`.
+
+Login y recuperación aplican automáticamente el limitador en memoria de
+`src/lib/seguridad/limite.ts`, antes de consultar la base o calcular hashes.
+Cada operación admite cinco solicitudes válidas por IP y cinco por correo
+normalizado; el sexto intento se rechaza con `ErrorLimiteIntentos`. Al quinto
+intento empieza un bloqueo de 15 minutos, que no se extiende con los rechazos.
+Las cuotas de login y recuperación son independientes y cuentan también las
+solicitudes exitosas y los correos inexistentes. Los intentos incompletos vencen
+a los 15 minutos. La IP se obtiene con `ipCliente(await headers())`; nunca se
+toma de un campo del formulario. El estado se pierde al reiniciar el proceso
+y no se comparte entre instancias del servidor.
 
 Pruebas de validadores y servicios, sin base de datos ni librerías adicionales:
 
 ```sh
 npm ci
 npm run db:generate
-npx tsx --test src/modules/autenticacion/servicio.test.ts
+npx tsx --test src/modules/autenticacion/servicio.test.ts src/lib/seguridad/limite.test.ts
 npm run typecheck
 npm run lint
 ```
