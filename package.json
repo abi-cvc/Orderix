@@ -20,7 +20,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "db:seed:volumen": "tsx prisma/seed-volumen.ts"
+    "db:seed:volumen": "tsx prisma/seed-volumen.ts",
+    "db:seed:sql": "tsx prisma/semilla-sql.ts"
   },
   "dependencies": {
     "@next/env": "^16.4.6",
