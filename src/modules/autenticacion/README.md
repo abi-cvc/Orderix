@@ -15,7 +15,8 @@ que no contiene dependencias de servidor.
   con vigencia de 30 minutos, e imprime el enlace en consola para simular el correo.
 - `restablecerClave({ token, clave })`: reclama un token vigente y sin usar,
   actualiza la clave y elimina las sesiones en una transacción. Después llama
-  al contrato `cerrarTodasLasSesiones(usuarioId)`. Los tokens de cuentas inactivas
+  a `cerrarTodasLasSesiones(usuarioId)` y luego a `desconectarUsuario(usuarioId)`
+  para cortar sus conexiones en tiempo real. Los tokens de cuentas inactivas
   se rechazan. Una actualización condicional impide consumir dos veces el token.
 
 El enlace usa `APP_URL` y la ruta `/restablecer-clave?token=...`.
