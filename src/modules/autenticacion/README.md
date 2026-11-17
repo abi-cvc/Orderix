@@ -23,13 +23,21 @@ implementa los servicios, no las páginas; el formulario futuro de esa ruta debe
 enviar `token` y `clave`. Las acciones deberán aplicar `protegerFormulario`.
 
 Login y recuperación aplican automáticamente el limitador en memoria de
-`src/lib/seguridad/limite.ts`, antes de consultar la base o calcular hashes.
-Cada operación admite cinco solicitudes válidas por IP y cinco por correo
-normalizado; el sexto intento se rechaza con `ErrorLimiteIntentos`. Al quinto
-intento empieza un bloqueo de 15 minutos, que no se extiende con los rechazos.
-Las cuotas de login y recuperación son independientes y cuentan también las
-solicitudes exitosas y los correos inexistentes. Los intentos incompletos vencen
-a los 15 minutos. La IP se obtiene con `ipCliente(await headers())`; nunca se
+`src/lib/seguridad/limite.ts`. Antes de consultar la base o calcular hashes se
+comprueba el bloqueo sin consumir intentos. En login solo se cuentan los accesos
+rechazados (clave incorrecta, correo inexistente o cuenta inactiva): cinco por
+correo normalizado y 30 por IP. Un acceso correcto reinicia los fallos de ese
+correo, conservando los acumulados por IP. Los accesos correctos no consumen
+cuota, por lo que varios usuarios pueden entrar desde la misma red.
+
+En recuperación se cuenta cada solicitud: cinco por correo y 30 por IP,
+independientemente de que la cuenta exista. Las cuotas de login y recuperación
+son independientes. Al alcanzar cada cuota empieza un bloqueo de 15 minutos,
+que no se extiende con los rechazos ni con fallos que ya estaban en vuelo.
+Las verificaciones de login que ya estaban en curso pueden terminar; los
+bloqueos se comprueban antes de comenzar la verificación de cada solicitud.
+Los contadores que no alcanzan la cuota vencen a los 15 minutos desde el primer
+intento. La IP se obtiene con `ipCliente(await headers())`; nunca se
 toma de un campo del formulario. El estado se pierde al reiniciar el proceso
 y no se comparte entre instancias del servidor.
 

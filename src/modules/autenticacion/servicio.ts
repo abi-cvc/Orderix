@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 import { ErrorNoAutenticado, ErrorValidacion } from "@/lib/errores";
 import { generarToken, hashearClave, hashearToken, verificarClave } from "@/lib/hash";
 import { validar } from "@/lib/validacion";
-import { limitarIntentos } from "@/lib/seguridad/limite";
+import { limitadorIntentos } from "@/lib/seguridad/limite";
 import { ipCliente } from "@/lib/seguridad/peticion";
 import * as repositorio from "./repositorio";
 import { cerrarTodasLasSesiones } from "./sesion";
@@ -33,7 +33,7 @@ export interface DependenciasAutenticacion {
   obtenerUrlApp: () => string;
   imprimirEnlace: (enlace: string) => void;
   obtenerIpCliente: () => Promise<string>;
-  limitarIntentos: typeof limitarIntentos;
+  limitadorIntentos: typeof limitadorIntentos;
 }
 
 const dependenciasReales: DependenciasAutenticacion = {
@@ -52,7 +52,7 @@ const dependenciasReales: DependenciasAutenticacion = {
     const { headers } = await import("next/headers");
     return ipCliente(await headers());
   },
-  limitarIntentos,
+  limitadorIntentos,
 };
 
 export async function registrarUsuario(
@@ -74,14 +74,17 @@ export async function verificarCredenciales(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<UsuarioSesion> {
   const datos = validar(esquemaLogin, entrada);
-  deps.limitarIntentos("login", await deps.obtenerIpCliente(), datos.correo);
+  const ip = await deps.obtenerIpCliente();
+  deps.limitadorIntentos.comprobarBloqueo("login", ip, datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   // También ejecuta Argon2 si el correo no existe, para reducir diferencias de tiempo.
   const hash = usuario?.hashClave ?? (await deps.hashearClave(deps.generarToken()));
   const claveValida = await deps.verificarClave(hash, datos.clave);
   if (!usuario || !claveValida || !usuario.activo) {
+    deps.limitadorIntentos.registrarIntento("login", ip, datos.correo);
     throw new ErrorNoAutenticado("Correo o clave incorrectos.");
   }
+  deps.limitadorIntentos.reiniciarCorreoLogin(datos.correo);
   return { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol };
 }
 
@@ -90,7 +93,9 @@ export async function solicitarRecuperacion(
   deps: DependenciasAutenticacion = dependenciasReales,
 ): Promise<{ mensaje: string }> {
   const datos = validar(esquemaSolicitarRecuperacion, entrada);
-  deps.limitarIntentos("recuperacion", await deps.obtenerIpCliente(), datos.correo);
+  const ip = await deps.obtenerIpCliente();
+  deps.limitadorIntentos.comprobarBloqueo("recuperacion", ip, datos.correo);
+  deps.limitadorIntentos.registrarIntento("recuperacion", ip, datos.correo);
   const usuario = await deps.repositorio.buscarUsuarioPorCorreo(datos.correo);
   if (usuario?.activo) {
     const token = deps.generarToken();
