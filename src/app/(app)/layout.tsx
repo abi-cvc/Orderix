@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { NavegacionPrincipal } from "@/componentes/NavegacionPrincipal";
+import { FormularioCerrarSesion } from "@/componentes/FormularioCerrarSesion";
+import { tokenCsrf } from "@/modules/autenticacion";
 import { ETIQUETA_ROL, navegacionPara } from "@/lib/navegacion";
 import { usuarioDePagina } from "@/lib/pagina";
 
@@ -25,7 +27,7 @@ export default async function LayoutAplicacion({ children }: { children: ReactNo
             <span className="solo-lector">Sesión iniciada como </span>
             {usuario.nombre} · {ETIQUETA_ROL[usuario.rol]}
           </p>
-          {/* Frente A (Alejandro): aquí va el formulario de "Cerrar sesión". */}
+          <FormularioCerrarSesion csrf={await tokenCsrf()} />
         </div>
       </header>
 

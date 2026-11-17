@@ -18,9 +18,29 @@ que no contiene dependencias de servidor.
   al contrato `cerrarTodasLasSesiones(usuarioId)`. Los tokens de cuentas inactivas
   se rechazan. Una actualización condicional impide consumir dos veces el token.
 
-El enlace usa `APP_URL` y la ruta `/restablecer-clave?token=...`. Esta iteración
-implementa los servicios, no las páginas; el formulario futuro de esa ruta debe
-enviar `token` y `clave`. Las acciones deberán aplicar `protegerFormulario`.
+El enlace usa `APP_URL` y la ruta `/restablecer-clave?token=...`.
+
+## Pantallas y acciones
+
+- `/login`: verifica las credenciales, llama a `iniciarSesion(usuario.id)` y
+  redirige al inicio protegido.
+- `/registro`: solicita nombre, correo y clave; no ofrece selector de rol.
+  Confirma la creación de la cuenta y permite ir a iniciar sesión.
+- `/recuperar`: solicita el correo y muestra la respuesta genérica del servicio.
+- `/restablecer-clave?token=...`: solicita la nueva clave. Si falta el token o
+  tiene un formato inválido, ofrece pedir otro enlace. Los tokens vencidos o
+  usados se rechazan al enviar el formulario.
+- El encabezado de las pantallas protegidas incluye «Cerrar sesión»: llama a
+  `cerrarSesion()`, desconecta las conexiones en tiempo real del usuario y
+  redirige a `/login`.
+
+Las acciones viven en `src/app/(autenticacion)/acciones.ts`. Todas comprueban
+primero `await protegerFormulario(formData)`. Los formularios incluyen el campo
+CSRF, validan con los mismos esquemas Zod en el navegador y muestran errores
+generales y por campo. Los servicios vuelven a validar en el servidor.
+El correo utiliza `autocomplete="username"`; la clave de login,
+`current-password`; las nuevas claves, `new-password`. Se permite pegar en todos
+los campos. No se devuelve la clave como parte del estado del formulario.
 
 Login y recuperación aplican automáticamente el limitador en memoria de
 `src/lib/seguridad/limite.ts`. Antes de consultar la base o calcular hashes se
