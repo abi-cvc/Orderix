@@ -40,6 +40,22 @@ export interface EventosTiempoReal {
     nombreProducto: string;
     alergias: string;
   };
+
+  /** Nuevo mensaje en el chat. */
+  "chat:mensaje": {
+    id: number;
+    salaId: number;
+    autorId: number;
+    autorNombre: string;
+    texto: string;
+    enviadoEn: Date | string;
+  };
+
+  /** Lista actualizada de usuarios conectados al chat. */
+  "chat:conectados": {
+    id: number;
+    nombre: string;
+  }[];
 }
 
 export type TipoEvento = keyof EventosTiempoReal;
