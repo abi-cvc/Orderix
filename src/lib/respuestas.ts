@@ -7,6 +7,7 @@ import {
   ErrorProhibido,
   ErrorValidacion,
 } from "@/lib/errores";
+import { ErrorLimiteIntentos } from "@/lib/seguridad/limite";
 
 /**
  * Traduce un error lanzado por un servicio a una respuesta JSON para las rutas
@@ -17,6 +18,13 @@ import {
 export function respuestaDeError(error: unknown): NextResponse {
   if (error instanceof ErrorValidacion) {
     return NextResponse.json({ error: error.message, campos: error.campos }, { status: 400 });
+  }
+  if (error instanceof ErrorLimiteIntentos) {
+    // 429 + Retry-After: el cliente sabe cuántos segundos esperar.
+    return NextResponse.json(
+      { error: error.message },
+      { status: 429, headers: { "Retry-After": String(error.reintentarEnSegundos) } },
+    );
   }
   if (error instanceof ErrorDominio) {
     const estado =
