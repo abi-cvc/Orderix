@@ -1,0 +1,66 @@
+# Plan de seguridad de Orderix — primer bimestre
+
+Responsable: Alejandro Veloz. Fecha: 15 de noviembre de 2026.
+
+Alcance: monolito Next.js/Node, PostgreSQL con Prisma y Socket.IO en el mismo servidor. Este documento registra decisiones y verificaciones previstas; no certifica controles implementados. No incluye JWT ni microservicios del segundo bimestre. Solo se usan datos ficticios.
+
+## OWASP Top 10:2025
+
+Descripciones resumidas de las páginas oficiales enlazadas, consultadas el 15 de noviembre de 2026. Los riesgos y su aplicación a Orderix son análisis del proyecto. Cada cobertura es un compromiso por implementar y verificar.
+
+| Categoría y descripción | Riesgo en Orderix | Cobertura acordada | Pendiente por conversar y verificar |
+| --- | --- | --- | --- |
+| [A01 Control de acceso roto](https://top10.owasp.org/2025/A01_2025-Broken_Access_Control/): actuar fuera de los permisos concedidos. | Un mesero consulta o modifica pedidos ajenos; alguien cambia estados por WebSocket sin permiso. | `requireRole` en cada ruta y evento; verificar además propiedad del pedido. CSRF con SameSite, origen y token. | Matriz de permisos por acción, pruebas entre dos meseros y filtrado de destinatarios de notificaciones. |
+| [A02 Configuración insegura](https://top10.owasp.org/2025/A02_2025-Security_Misconfiguration/): ajustes inseguros del sistema o servicios. | Cookies expuestas, cabeceras ausentes o secretos publicados en Render. | Helmet, CSP, HTTPS, cookies seguras y variables de entorno; excluir `.env`. | Comprobar proxy de Render, orígenes permitidos y configuración de producción sin accesos de desarrollo. |
+| [A03 Fallas en la cadena de suministro de software](https://top10.owasp.org/2025/A03_2025-Software_Supply_Chain_Failures/): compromisos al construir, distribuir o actualizar software. | Dependencia npm o acción de CI comprometida ejecuta código malicioso. | `npm audit`, Dependabot y escaneo de secretos en GitHub Actions. | Responsable y plazo de actualización; revisión de dependencias transitivas, lockfile y permisos/versiones de Actions. Los escáneres no garantizan detectar paquetes maliciosos. |
+| [A04 Fallas criptográficas](https://top10.owasp.org/2025/A04_2025-Cryptographic_Failures/): protección criptográfica ausente o inadecuada. | Robo de claves o tokens desde la base o el tráfico. | Argon2id con sal, hash del token de recuperación, HTTPS y wss; secretos fuera del repositorio. | Parámetros de Argon2id, generación criptográficamente segura y entropía de identificadores/tokens; TLS hacia PostgreSQL y rotación de secretos. |
+| [A05 Inyección](https://top10.owasp.org/2025/A05_2025-Injection/): datos no confiables se interpretan como instrucciones. | SQL alterado o scripts en notas y chat. | Prisma parametrizado, sin SQL concatenado; Zod en servidor; escape React, saneamiento del chat, CSP y prohibición ESLint de `dangerouslySetInnerHTML`. | Elegir saneador y probar cargas XSS en historial y mensajes nuevos; revisar cualquier consulta SQL cruda. |
+| [A06 Diseño inseguro](https://top10.owasp.org/2025/A06_2025-Insecure_Design/): faltan controles desde el diseño. | Saltarse estados del pedido, alterar totales o abusar de la recuperación. | Separación por roles, propiedad de pedidos, validación del servidor, tokens de un uso y límites de intentos. | Modelar amenazas, transiciones permitidas, cálculo del total en servidor y concurrencia al cobrar/cancelar. |
+| [A07 Fallas de autenticación](https://top10.owasp.org/2025/A07_2025-Authentication_Failures/): identificación y sesiones deficientes. | Enumerar cuentas, adivinar claves o reutilizar sesiones cerradas. | Claves de 10 caracteres mínimo, Argon2id, mensajes uniformes, límites por IP/correo, sesiones renovadas y revocadas; handshake autenticado. | Duración de sesión, umbrales de bloqueo, revocación de sockets abiertos al cerrar sesión y cambio de clave. |
+| [A08 Fallas de integridad de software o datos](https://top10.owasp.org/2025/A08_2025-Software_or_Data_Integrity_Failures/): confiar en código o datos sin verificar su integridad. | Manipular rol/precio enviados o instalar artefactos alterados. | Zod en servidor y mensajes Socket.IO; autorización central y controles de dependencias como apoyo parcial. | Lista de campos editables, valores sensibles obtenidos del servidor, revisión de PR y procedencia/integridad de artefactos desplegados. Validar formato no prueba integridad. |
+| [A09 Fallas de registro y alertas](https://top10.owasp.org/2025/A09_2025-Security_Logging_and_Alerting_Failures/): no detectar ni responder a incidentes. | Ataques de acceso o fuerza bruta pasan inadvertidos. | No registrar contraseñas, tokens ni identificadores de sesión; escaneo de secretos como apoyo. | Definir eventos de seguridad, retención, acceso a logs, umbrales de alerta y responsable de respuesta. Omitir secretos no equivale a monitorear. |
+| [A10 Manejo incorrecto de condiciones excepcionales](https://top10.owasp.org/2025/A10_2025-Mishandling_of_Exceptional_Conditions/): errores imprevistos provocan comportamiento inseguro. | Caída de base deja una operación parcial o un error permite acceso. | Zod y límites de tamaño/frecuencia reducen entradas problemáticas. | Manejo central de errores sin trazas al cliente, denegar ante fallo de sesión, transacciones/rollback, tiempos de espera y pruebas de desconexión. |
+
+## Decisiones de seguridad
+
+- **Contraseñas:** mínimo 10 caracteres y permitir pegar y usar gestores. Argon2id genera un hash con sal propia por contraseña; no hay descifrado para recuperar la clave.
+- **Sesión:** identificador aleatorio almacenado en la base y enviado en cookie `HttpOnly`, `Secure` y `SameSite`. HttpOnly impide leerla desde JavaScript; Secure restringe su envío a HTTPS. Se renueva al iniciar sesión y se invalida en el servidor al salir. Falta concretar valor de SameSite y vencimiento.
+- **Recuperación:** token aleatorio, de un uso, válido 30 minutos; guardar solo su hash. Responder igual exista o no el correo. El envío se simula en consola: queda pendiente resolver la tensión con la prohibición de registrar tokens. Propuesta para discutir: bandeja local de pruebas aislada, sin escribir el token en logs; nunca habilitar salida de tokens en producción.
+- **Intentos:** mismo error ante correo o clave incorrectos; limitar por IP y correo tanto login como recuperación, con bloqueo temporal. Falta fijar cantidades, ventana y duración, considerando el proxy de Render.
+- **Validación:** Zod en cliente para ayudar al usuario y otra vez en servidor como control obligatorio. Todo mensaje Socket.IO también pasa por esquema, saneamiento y límites de tamaño y frecuencia.
+- **SQL y XSS:** consultas mediante Prisma parametrizado; prohibido concatenar SQL. React escapa texto; ESLint bloquea `dangerouslySetInnerHTML`. Sanear chat y aplicar CSP como protección adicional.
+- **CSRF:** SameSite, comprobación de origen y token en formularios que mutan datos. El servidor verifica los tres controles aplicables; SameSite por sí solo no sustituye el token.
+- **Autorización:** una función `requireRole` comprueba el rol en cada ruta y evento. Además se comprueba propiedad: un mesero solo ve/modifica sus pedidos. Ocultar botones no otorga protección.
+- **WebSocket:** verificar sesión en handshake y rechazar conexiones anónimas; validar cada mensaje y su permiso. Usar `wss` en despliegue y comprobar origen según el contexto del proyecto. Falta definir límites numéricos y comportamiento al vencer/revocar la sesión.
+- **Operación:** Helmet y HTTPS en Render; `npm audit`, Dependabot y escaneo de secretos en GitHub Actions. Revisar resultados y corregir hallazgos, no solo ejecutar herramientas.
+- **Secretos y datos:** variables de entorno, `.env` excluido y `.env.example` sin valores reales. Nunca escribir claves, tokens ni sesiones en registros. Usar únicamente datos ficticios, incluidas alergias y cuentas de demostración.
+
+## Guion de la demo de seguridad
+
+Preparar un entorno local aislado con base ficticia, las funciones de autenticación y Socket.IO terminadas y el inspector de red abierto. Estos pasos son criterios de aceptación futuros, no pruebas ya ejecutadas. Confirmar previamente rutas, campos y eventos reales del frente A/D.
+
+### 1. Contraseña guardada como hash
+
+1. Registrar una cuenta ficticia con una clave de al menos 10 caracteres.
+2. Abrir `npm run db:studio` sobre la base local y buscar esa cuenta en `Usuario`.
+3. Mostrar únicamente el campo del hash: debe tener formato Argon2id (prefijo `$argon2id$`), con parámetros, sal y resultado; la clave original no aparece.
+4. Iniciar sesión con la clave original para demostrar que el servidor la verifica. Una clave incorrecta debe fallar con el mensaje uniforme.
+5. Explicar que observar un hash demuestra almacenamiento, pero los parámetros y la verificación requieren revisar la utilidad de hash. No proyectar cookies, tokens ni variables de entorno.
+
+### 2. Validación del servidor con validación del navegador desactivada
+
+1. Abrir el registro y comprobar que una clave de menos de 10 caracteres normalmente muestra error.
+2. En DevTools desactivar restricciones HTML (`novalidate` en el formulario y retirar `required`, `minlength` o `pattern` aplicables).
+3. Si Zod del cliente sigue bloqueando el envío, capturar una petición válida en Red y reenviarla editando solo la clave por una corta. Conservar origen, cookie y token CSRF válidos para aislar la validación de datos.
+4. Mostrar que la petición inválida llegó al servidor y fue rechazada con un error de validación controlado; no asumir un código HTTP hasta definir el contrato.
+5. Consultar la base: no debe existir el nuevo usuario inválido. Repetir con datos válidos para demostrar que el flujo normal funciona.
+
+### 3. Socket.IO sin sesión rechazado
+
+1. Mostrar como control una conexión autenticada que recibe eventos del chat.
+2. Abrir una ventana privada nueva, sin iniciar sesión y sin cookies de Orderix. Usar el mismo origen permitido para evitar que la prueba falle solo por origen.
+3. Con el cliente Socket.IO del proyecto, iniciar una conexión al servidor real. No usar WebSocket nativo contra Socket.IO porque su protocolo es diferente.
+4. Mostrar el evento `connect_error` del cliente y comprobar que `connect` no ocurre. Un transporte Engine.IO abierto por sí solo no acredita autenticación de Socket.IO.
+5. Verificar que ese cliente no entra en salas, no recibe historial/eventos y no persiste mensajes. Mostrar luego que iniciar sesión permite conectar.
+
+Uso de IA: Codex (OpenAI) apoyó la lectura del contexto, consulta de fuentes oficiales y redacción de la tabla.
