@@ -29,6 +29,7 @@ export interface DependenciasAutenticacion {
   generarToken: typeof generarToken;
   hashearToken: typeof hashearToken;
   cerrarTodasLasSesiones: typeof cerrarTodasLasSesiones;
+  desconectarUsuario: (usuarioId: number) => void | Promise<void>;
   ahora: () => Date;
   obtenerUrlApp: () => string;
   imprimirEnlace: (enlace: string) => void;
@@ -43,6 +44,11 @@ const dependenciasReales: DependenciasAutenticacion = {
   generarToken,
   hashearToken,
   cerrarTodasLasSesiones,
+  desconectarUsuario: async (usuarioId) => {
+    // Carga diferida para evitar un ciclo al arrancar el servidor de tiempo real.
+    const { desconectarUsuario } = await import("@/modules/tiempo-real");
+    desconectarUsuario(usuarioId);
+  },
   ahora: () => new Date(),
   obtenerUrlApp: () => env().APP_URL,
   // En el primer bimestre el envío de correo se simula exclusivamente en consola.
@@ -127,4 +133,5 @@ export async function restablecerClave(
     throw new ErrorValidacion({ token: ["El enlace de recuperación venció o ya fue utilizado."] });
   }
   await deps.cerrarTodasLasSesiones(usuarioId);
+  await deps.desconectarUsuario(usuarioId);
 }

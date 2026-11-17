@@ -24,6 +24,7 @@ const PANTALLAS = [
   { ruta: "/ejemplo", nombre: "componentes de ejemplo" },
   { ruta: "/pedidos", nombre: "listado de pedidos" },
   { ruta: "/pedidos/nuevo", nombre: "nuevo pedido" },
+  { ruta: "/chat", nombre: "chat general" },
 ];
 
 for (const { ruta, nombre } of PANTALLAS) {

@@ -47,6 +47,11 @@ Un pedido también puede quedar "cancelado".
 | Integración continua | GitHub Actions                                                         |
 | Despliegue           | Render (servicio web Node) y Neon (base de datos)                      |
 
+## Diagramas
+
+- [Arquitectura del monolito](docs/arquitectura.md)
+- [Modelo entidad-relación](docs/modelo-datos.md)
+
 ## Integrantes
 
 | Nombre             | Rol         |
@@ -55,3 +60,9 @@ Un pedido también puede quedar "cancelado".
 | Alejandro Veloz    | Por asignar |
 | Roberth Jacome     | Por asignar |
 | Ricardo Villarreal | Por asignar |
+
+## Uso de IA
+
+| Actividad                        | Uso de IA                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Historias de usuario y diagramas | Se utilizó IA para redactar y organizar las historias de usuario, los criterios de aceptación, las reglas del flujo de pedidos y los requisitos no funcionales en `docs/requisitos.md`, además de proponer y revisar los diagramas Mermaid de arquitectura y modelo de datos en `docs/arquitectura.md` y `docs/modelo-datos.md`. El contenido fue revisado y validado contra los requisitos del proyecto. |
