@@ -120,7 +120,7 @@ model Pedido {
   cambios CambioEstado[]
 
   @@index([estado, creadoEn])
-  @@index([meseroId])
+  @@index([meseroId, creadoEn]) // Listado del mesero: filtra por mesero y ordena por fecha (ver docs/rendimiento.md).
   @@map("pedidos")
 }
 
