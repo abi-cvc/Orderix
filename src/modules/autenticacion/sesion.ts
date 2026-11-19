@@ -57,7 +57,10 @@ export async function cerrarSesion(): Promise<void> {
   const almacen = await cookies();
   const token = almacen.get(nombreCookieSesion())?.value;
   if (token) await repositorio.borrarSesion(hashearToken(token));
-  almacen.delete(nombreCookieSesion());
+  // Se vacía con las MISMAS opciones con que se creó (Secure, Path=/...): el
+  // navegador no deja borrar una cookie __Host- si la orden no trae Secure.
+  // cookies().delete() no las repite, así que la cookie quedaba en el navegador.
+  almacen.set(nombreCookieSesion(), "", opcionesCookieSesion(0));
 }
 
 /** Cierra todas las sesiones de un usuario (al restablecer la clave o desactivarlo). */
