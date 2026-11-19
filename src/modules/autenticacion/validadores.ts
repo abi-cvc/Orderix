@@ -1,5 +1,6 @@
 /** Esquemas compartidos por los formularios y el servicio, sin dependencias de servidor. */
 import { z } from "zod";
+import { Rol } from "@/generated/prisma/enums";
 
 const correo = z
   .string({ error: "Ingresa tu correo." })
@@ -45,3 +46,33 @@ export type EntradaSolicitarRecuperacion = z.input<typeof esquemaSolicitarRecupe
 export type DatosSolicitarRecuperacion = z.output<typeof esquemaSolicitarRecuperacion>;
 export type EntradaRestablecerClave = z.input<typeof esquemaRestablecerClave>;
 export type DatosRestablecerClave = z.output<typeof esquemaRestablecerClave>;
+
+// ------------------------------------------------- gestión de usuarios (admin)
+
+const usuarioId = z.coerce
+  .number({ error: "El usuario no es válido." })
+  .int("El usuario no es válido.")
+  .positive("El usuario no es válido.");
+
+export const esquemaFiltroUsuarios = z.object({
+  pagina: z.coerce.number().int().min(1).catch(1),
+  texto: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((valor) => valor || undefined)
+    .catch(undefined),
+});
+
+export const esquemaCambiarRol = z.object({
+  usuarioId,
+  rol: z.enum(Rol, { error: "Elige un rol válido." }),
+});
+
+export const esquemaCambiarActivo = z.object({
+  usuarioId,
+  activo: z
+    .enum(["true", "false"], { error: "El estado no es válido." })
+    .transform((v) => v === "true"),
+});

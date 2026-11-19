@@ -3,12 +3,19 @@ import { test } from "node:test";
 import { Rol } from "@/generated/prisma/enums";
 import { ErrorProhibido, ErrorValidacion } from "@/lib/errores";
 import { validar } from "@/lib/validacion";
-import { listarProductos } from "./servicio";
+import { activarProducto, listarProductos } from "./servicio";
 import { esquemaCrearProducto, esquemaFiltroProductos } from "./validadores";
 
 test("el servicio del menú rechaza roles distintos de administrador antes de tocar datos", async () => {
   await assert.rejects(
     () => listarProductos({ id: 1, nombre: "Mesero", rol: Rol.MESERO }, {}),
+    ErrorProhibido,
+  );
+});
+
+test("solo un administrador puede activar productos", async () => {
+  await assert.rejects(
+    () => activarProducto({ id: 1, nombre: "Mesero", rol: Rol.MESERO }, "1"),
     ErrorProhibido,
   );
 });

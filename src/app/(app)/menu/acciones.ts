@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { estadoDeError, type EstadoFormulario } from "@/lib/formularios";
 import { protegerFormulario, requireRole } from "@/modules/autenticacion";
 import {
+  activarProducto,
   crearProducto,
   desactivarProducto,
   editarProducto,
@@ -71,6 +72,19 @@ export async function desactivarProductoAccion(
       await desactivarProducto(await requireRole(), datos.get("id"));
     },
     "Producto desactivado.",
+  );
+}
+
+export async function activarProductoAccion(
+  _estado: EstadoFormulario,
+  datos: FormData,
+): Promise<EstadoFormulario> {
+  return ejecutar(
+    datos,
+    async () => {
+      await activarProducto(await requireRole(), datos.get("id"));
+    },
+    "Producto activado.",
   );
 }
 

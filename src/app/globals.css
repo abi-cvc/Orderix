@@ -893,3 +893,21 @@ textarea.campo__control {
   color: var(--color-exito);
   font-size: 0.75rem;
 }
+
+/* ------------------------------------------------ usuarios */
+.formulario-rol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formulario-rol .campo__control {
+  width: auto;
+  min-width: 9rem;
+}
+
+.formulario-rol .aviso {
+  flex-basis: 100%;
+  margin: 0;
+}
