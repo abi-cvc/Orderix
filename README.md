@@ -181,22 +181,22 @@ Paginación en el servidor, índices en los campos de filtro y orden, y medició
 
 ## Integrantes
 
-| Integrante         | Frente                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Carol Velásquez    | Esqueleto del proyecto, seguridad base, tiempo real base, UI base, pedidos, cocina y caja, pruebas, CI y despliegue |
-| Alejandro Veloz    | Usuarios y seguridad: registro, inicio de sesión, recuperación, límite de intentos, plan de seguridad OWASP         |
-| Ricardo Villarreal | Menú: CRUD de productos; requisitos, historias de usuario y diagramas                                               |
-| Roberth Jácome     | Tiempo real y chat: chat general, historial y conectados; planteamiento y cronograma                                |
+| Integrante         | Frente                                                                                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Carol Velásquez    | Esqueleto del proyecto, seguridad base, tiempo real base, UI base, pedidos, cocina y caja, gestión de usuarios del administrador, pruebas, CI y despliegue |
+| Alejandro Veloz    | Usuarios y seguridad: registro, inicio de sesión, recuperación, límite de intentos, plan de seguridad OWASP                                                |
+| Ricardo Villarreal | Menú: CRUD de productos; requisitos, historias de usuario y diagramas                                                                                      |
+| Roberth Jácome     | Tiempo real y chat: chat general, historial y conectados; planteamiento y cronograma                                                                       |
 
 ## Uso de IA
 
 Cada integrante declara cómo usó herramientas de IA. Todo el código y los documentos fueron revisados, probados y entendidos por el equipo antes de integrarse.
 
-| Integrante | Herramienta                     | Para qué se usó                                                                                                                                                                                                                    |
-| ---------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Carol      | Claude (Anthropic), Claude Code | Planificación del esqueleto, implementación guiada de la seguridad base, tiempo real, UI base, pedidos, pruebas y CI; revisión de los PR del equipo; redacción de documentación. Cada paso se verificó y commiteó de forma manual. |
-| Ricardo    | IA (asistente)                  | Redactar y organizar las historias de usuario, criterios de aceptación y requisitos no funcionales; proponer y revisar los diagramas Mermaid.                                                                                      |
-| Ricardo    | GitHub Copilot                  | Implementar el CRUD de productos, sus validaciones y la interfaz.                                                                                                                                                                  |
-| Alejandro  | Codex (OpenAI)                  | Lectura del contexto, consulta de fuentes oficiales y redacción de la tabla OWASP de `docs/seguridad.md`.                                                                                                                          |
-| Alejandro  | _por completar_                 | _Pantallas y servicio de autenticación (completar si se usó IA)._                                                                                                                                                                  |
-| Roberth    | _por completar_                 | _Planteamiento y chat (completar si se usó IA)._                                                                                                                                                                                   |
+| Integrante | Herramienta                     | Para qué se usó                                                                                                                                                                                                                                         |
+| ---------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Carol      | Claude (Anthropic), Claude Code | Planificación del esqueleto, implementación guiada de la seguridad base, tiempo real, UI base, pedidos, gestión de usuarios, pruebas y CI; revisión de los PR del equipo; redacción de documentación. Cada paso se verificó y commiteó de forma manual. |
+| Ricardo    | IA (asistente)                  | Redactar y organizar las historias de usuario, criterios de aceptación y requisitos no funcionales; proponer y revisar los diagramas Mermaid.                                                                                                           |
+| Ricardo    | GitHub Copilot                  | Implementar el CRUD de productos, sus validaciones y la interfaz.                                                                                                                                                                                       |
+| Alejandro  | Codex (OpenAI)                  | Lectura del contexto, consulta de fuentes oficiales y redacción de la tabla OWASP de `docs/seguridad.md`.                                                                                                                                               |
+| Alejandro  | _por completar_                 | _Pantallas y servicio de autenticación (completar si se usó IA)._                                                                                                                                                                                       |
+| Roberth    | _por completar_                 | _Planteamiento y chat (completar si se usó IA)._                                                                                                                                                                                                        |

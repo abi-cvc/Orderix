@@ -132,3 +132,62 @@ export function buscarNombres(ids: number[]): Promise<{ id: number; nombre: stri
     select: { id: true, nombre: true },
   });
 }
+
+// ------------------------------------------------- gestión de usuarios (admin)
+
+export interface UsuarioListado {
+  id: number;
+  nombre: string;
+  correo: string;
+  rol: Rol;
+  activo: boolean;
+  creadoEn: Date;
+}
+
+const camposListado = {
+  id: true,
+  nombre: true,
+  correo: true,
+  rol: true,
+  activo: true,
+  creadoEn: true,
+} as const;
+
+/** Una página de usuarios, buscando por nombre o correo. Orden fijo para paginar estable. */
+export async function listarUsuarios(consulta: {
+  texto?: string;
+  salto: number;
+  cantidad: number;
+}): Promise<{ usuarios: UsuarioListado[]; total: number }> {
+  const where = consulta.texto
+    ? {
+        OR: [
+          { nombre: { contains: consulta.texto, mode: "insensitive" as const } },
+          { correo: { contains: consulta.texto, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
+  const [usuarios, total] = await prisma().$transaction([
+    prisma().usuario.findMany({
+      where,
+      orderBy: [{ nombre: "asc" }, { id: "asc" }],
+      skip: consulta.salto,
+      take: consulta.cantidad,
+      select: camposListado,
+    }),
+    prisma().usuario.count({ where }),
+  ]);
+  return { usuarios, total };
+}
+
+export function buscarUsuarioPorId(id: number): Promise<UsuarioListado | null> {
+  return prisma().usuario.findUnique({ where: { id }, select: camposListado });
+}
+
+export async function actualizarRol(id: number, rol: Rol): Promise<void> {
+  await prisma().usuario.update({ where: { id }, data: { rol } });
+}
+
+export async function actualizarActivo(id: number, activo: boolean): Promise<void> {
+  await prisma().usuario.update({ where: { id }, data: { activo } });
+}

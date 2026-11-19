@@ -19,5 +19,11 @@ export {
   requireRole,
   tokenCsrf,
 } from "./sesion";
+export {
+  cambiarActivo,
+  cambiarRol,
+  listarUsuarios,
+  type UsuarioListado,
+} from "./servicio-usuarios";
 export { obtenerNombresDeUsuarios } from "./contratos";
 export { CAMPO_CSRF } from "@/lib/seguridad/csrf";
