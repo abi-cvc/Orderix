@@ -100,7 +100,7 @@ export default async function MenuPage({ searchParams }: { searchParams: Paramet
 
   return (
     <>
-      <div className="titulo-con-accion">
+      <div className="pagina-cabecera titulo-con-accion">
         <h1>Menú</h1>
         <Link href="/menu/nuevo" className="boton boton--primario">
           Nuevo producto

@@ -14,12 +14,14 @@ export default async function NuevoProductoPage() {
 
   return (
     <>
-      <p>
-        <Link href="/menu">
-          <span aria-hidden="true">←</span> Volver al menú
-        </Link>
-      </p>
-      <h1>Nuevo producto</h1>
+      <header className="pagina-cabecera">
+        <p>
+          <Link href="/menu">
+            <span aria-hidden="true">←</span> Volver al menú
+          </Link>
+        </p>
+        <h1>Nuevo producto</h1>
+      </header>
       <FormularioProducto accion={crearProductoAccion} csrf={csrf} />
     </>
   );

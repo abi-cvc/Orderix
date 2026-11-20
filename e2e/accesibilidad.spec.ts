@@ -44,6 +44,36 @@ test("axe: los errores del formulario siguen siendo accesibles", async ({ page }
   expect(await violaciones(page)).toEqual([]);
 });
 
+test("el catálogo permite buscar y elegir cada producto del pedido por separado", async ({
+  page,
+}) => {
+  await page.goto("/pedidos/nuevo");
+
+  const primeraFila = page.getByRole("group", { name: "Producto 1", exact: true });
+  const primerBuscador = primeraFila.getByRole("searchbox");
+  await primerBuscador.fill("cafe");
+  const cafe = primeraFila.getByRole("radio", { name: /Café pasado/ });
+  await primerBuscador.press("Tab");
+  await expect(cafe).toBeFocused();
+  await cafe.press("Space");
+  await expect(cafe).toBeChecked();
+
+  await page.getByRole("button", { name: "Agregar otro producto" }).click();
+  const segundaFila = page.getByRole("group", { name: "Producto 2", exact: true });
+  const segundoBuscador = segundaFila.getByRole("searchbox");
+  await expect(segundoBuscador).toBeFocused();
+  await segundoBuscador.fill("sin coincidencias");
+  await expect(segundaFila.getByRole("status")).toHaveText(
+    "No hay productos que coincidan con la búsqueda.",
+  );
+
+  await segundoBuscador.fill("limonada");
+  await segundaFila.getByText("Limonada", { exact: true }).click();
+  await expect(segundaFila.getByRole("radio", { name: /Limonada/ })).toBeChecked();
+  await expect(cafe).toBeChecked();
+  await expect(page.locator(".total-estimado")).toContainText("3,75");
+});
+
 test("teclado: el primer Tab es 'Saltar al contenido' y lleva al contenido", async ({ page }) => {
   await page.goto("/pedidos");
   await page.keyboard.press("Tab");

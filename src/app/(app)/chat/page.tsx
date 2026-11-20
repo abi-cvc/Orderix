@@ -13,10 +13,10 @@ export default async function ChatPage() {
 
   return (
     <>
-      <div className="titulo-con-accion">
+      <header className="pagina-cabecera">
         <h1>Chat general</h1>
-      </div>
-      <p>Coordinación en tiempo real para todo el equipo del restaurante.</p>
+        <p>Coordina el servicio con el equipo del restaurante.</p>
+      </header>
       <ChatCliente usuarioActualId={usuario.id} />
     </>
   );

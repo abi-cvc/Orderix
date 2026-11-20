@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Marca } from "@/componentes/Marca";
 import { NavegacionPrincipal } from "@/componentes/NavegacionPrincipal";
 import { FormularioCerrarSesion } from "@/componentes/FormularioCerrarSesion";
 import { tokenCsrf } from "@/modules/autenticacion";
@@ -16,33 +17,35 @@ export default async function LayoutAplicacion({ children }: { children: ReactNo
   const elementos = navegacionPara(usuario.rol).map(({ href, etiqueta }) => ({ href, etiqueta }));
 
   return (
-    <>
+    <div className="aplicacion">
       <header className="encabezado">
         <div className="encabezado__barra">
-          <Link href="/" className="marca">
-            Orderix
-          </Link>
+          <Marca href="/" />
           <NavegacionPrincipal elementos={elementos} />
-          <p className="usuario-actual">
-            <span className="solo-lector">Sesión iniciada como </span>
-            {usuario.nombre} · {ETIQUETA_ROL[usuario.rol]}
-          </p>
-          <FormularioCerrarSesion csrf={await tokenCsrf()} />
+          <div className="sesion">
+            <p className="usuario-actual">
+              <span className="solo-lector">Sesión iniciada como </span>
+              <span>{usuario.nombre}</span>
+              <span className="usuario-actual__rol">{ETIQUETA_ROL[usuario.rol]}</span>
+            </p>
+            <FormularioCerrarSesion csrf={await tokenCsrf()} />
+          </div>
         </div>
       </header>
 
-      <main id="contenido" className="contenido" tabIndex={-1}>
-        {children}
-      </main>
-
-      <footer className="pie">
-        <div className="pie__interior">
-          <p>
-            <strong>¿Necesitas ayuda?</strong> Escribe en el <Link href="/chat">chat general</Link>{" "}
-            o pide apoyo al administrador del restaurante.
-          </p>
-        </div>
-      </footer>
-    </>
+      <div className="aplicacion__panel">
+        <main id="contenido" className="contenido" tabIndex={-1}>
+          {children}
+        </main>
+        <footer className="pie">
+          <div className="pie__interior">
+            <p>
+              <strong>¿Necesitas ayuda?</strong> Escribe en el{" "}
+              <Link href="/chat">chat general</Link> o pide apoyo al administrador del restaurante.
+            </p>
+          </div>
+        </footer>
+      </div>
+    </div>
   );
 }

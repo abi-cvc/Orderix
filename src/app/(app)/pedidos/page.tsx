@@ -54,7 +54,7 @@ export default async function PedidosPage({ searchParams }: { searchParams: Para
 
   return (
     <>
-      <div className="titulo-con-accion">
+      <div className="pagina-cabecera titulo-con-accion">
         <h1>{esMesero ? "Mis pedidos" : "Pedidos"}</h1>
         {esMesero && (
           <Link href="/pedidos/nuevo" className="boton boton--primario">

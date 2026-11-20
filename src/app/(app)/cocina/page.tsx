@@ -25,17 +25,19 @@ export default async function CocinaPage() {
 
   return (
     <>
-      <h1>Cocina</h1>
+      <header className="pagina-cabecera">
+        <h1>Cocina</h1>
+      </header>
       <ActualizarConEventos
         eventos={["pedido.creado", "pedido.estadoCambiado", "pedido.alergiaAgregada"]}
       />
-      <p role="status">
+      <p role="status" className={pedidos.length === 0 ? "panel-vacio" : undefined}>
         {pedidos.length === 0
           ? "No hay pedidos pendientes."
           : `${pedidos.length} ${pedidos.length === 1 ? "pedido pendiente" : "pedidos pendientes"}.`}
       </p>
 
-      <ul className="rejilla">
+      <ul className="rejilla rejilla--cocina">
         {pedidos.map((pedido) => {
           const conAlergia = pedido.items.some((item) => item.alergias);
           return (
@@ -46,11 +48,11 @@ export default async function CocinaPage() {
                   <span className="campo__ayuda"> · Pedido {pedido.id}</span>
                 </h2>
                 <p className="tarjeta__meta">
-                  <EtiquetaEstado estado={pedido.estado} />{" "}
+                  <EtiquetaEstado estado={pedido.estado} />
                   <time dateTime={pedido.creadoEn.toISOString()}>
                     {hora(pedido.creadoEn)} ({minutosDesde(pedido.creadoEn)})
-                  </time>{" "}
-                  · {pedido.meseroNombre}
+                  </time>
+                  <span className="campo__ayuda">{pedido.meseroNombre}</span>
                 </p>
                 <ul className="lista-cocina">
                   {pedido.items.map((item) => (

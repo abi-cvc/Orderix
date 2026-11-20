@@ -15,6 +15,7 @@ import {
   MESAS,
 } from "@/modules/pedidos/validadores";
 import { crearPedidoAccion } from "../acciones";
+import { SelectorProducto } from "../SelectorProducto";
 
 interface Fila {
   clave: number;
@@ -95,7 +96,7 @@ export function FormularioPedido({
       <input type="hidden" name="items" value={JSON.stringify(items)} />
       <Anuncio mensaje={estado.exito === false ? estado.mensaje : undefined} tipo="error" />
 
-      <div className="campo">
+      <div className="pedido-mesa campo">
         <label htmlFor="numeroMesa" className="campo__etiqueta">
           Mesa
         </label>
@@ -139,92 +140,74 @@ export function FormularioPedido({
           <fieldset key={fila.clave} className="fila-item">
             <legend>Producto {numero}</legend>
 
-            <div className="campo">
-              <label htmlFor={id("producto")} className="campo__etiqueta">
-                Producto
-              </label>
-              <select
-                id={id("producto")}
-                className="campo__control"
-                value={fila.productoId}
-                onChange={(e) => cambiar(fila.clave, "productoId", e.target.value)}
-                aria-invalid={err("productoId") ? true : undefined}
-                aria-describedby={err("productoId") ? id("producto-error") : undefined}
-              >
-                <option value="" disabled>
-                  Elige un producto
-                </option>
-                {productos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nombre} · {moneda(p.precio)}
-                  </option>
-                ))}
-              </select>
-              {err("productoId") && (
-                <p id={id("producto-error")} className="campo__error">
-                  <span aria-hidden="true">⚠</span> {err("productoId")}
-                </p>
-              )}
-            </div>
+            <SelectorProducto
+              id={id("producto")}
+              productos={productos}
+              valor={fila.productoId}
+              alCambiar={(valor) => cambiar(fila.clave, "productoId", valor)}
+              error={err("productoId")}
+            />
 
-            <div className="campo campo--corto">
-              <label htmlFor={id("cantidad")} className="campo__etiqueta">
-                Cantidad
-              </label>
-              <input
-                id={id("cantidad")}
-                className="campo__control"
-                inputMode="numeric"
-                value={fila.cantidad}
-                onChange={(e) => cambiar(fila.clave, "cantidad", e.target.value)}
-                aria-invalid={err("cantidad") ? true : undefined}
-                aria-describedby={`${id("cantidad-ayuda")}${err("cantidad") ? ` ${id("cantidad-error")}` : ""}`}
-              />
-              <span id={id("cantidad-ayuda")} className="campo__ayuda">
-                De 1 a {CANTIDAD_MAXIMA}.
-                {producto && Number(fila.cantidad) > 0
-                  ? ` Subtotal: ${moneda(subtotal(producto.precio, Math.floor(Number(fila.cantidad))))}`
-                  : ""}
-              </span>
-              {err("cantidad") && (
-                <p id={id("cantidad-error")} className="campo__error">
-                  <span aria-hidden="true">⚠</span> {err("cantidad")}
-                </p>
-              )}
-            </div>
+            <div className="fila-item__datos">
+              <div className="campo campo--corto">
+                <label htmlFor={id("cantidad")} className="campo__etiqueta">
+                  Cantidad
+                </label>
+                <input
+                  id={id("cantidad")}
+                  className="campo__control"
+                  inputMode="numeric"
+                  value={fila.cantidad}
+                  onChange={(e) => cambiar(fila.clave, "cantidad", e.target.value)}
+                  aria-invalid={err("cantidad") ? true : undefined}
+                  aria-describedby={`${id("cantidad-ayuda")}${err("cantidad") ? ` ${id("cantidad-error")}` : ""}`}
+                />
+                <span id={id("cantidad-ayuda")} className="campo__ayuda">
+                  De 1 a {CANTIDAD_MAXIMA}.
+                  {producto && Number(fila.cantidad) > 0
+                    ? ` Subtotal: ${moneda(subtotal(producto.precio, Math.floor(Number(fila.cantidad))))}`
+                    : ""}
+                </span>
+                {err("cantidad") && (
+                  <p id={id("cantidad-error")} className="campo__error">
+                    <span aria-hidden="true">⚠</span> {err("cantidad")}
+                  </p>
+                )}
+              </div>
 
-            <div className="campo">
-              <label htmlFor={id("alergias")} className="campo__etiqueta">
-                Alergias <span className="campo__ayuda">(opcional)</span>
-              </label>
-              <input
-                id={id("alergias")}
-                className="campo__control"
-                maxLength={LARGO_ALERGIAS}
-                placeholder="Ej.: maní, mariscos"
-                value={fila.alergias}
-                onChange={(e) => cambiar(fila.clave, "alergias", e.target.value)}
-                aria-describedby={err("alergias") ? id("alergias-error") : undefined}
-              />
-              {err("alergias") && (
-                <p id={id("alergias-error")} className="campo__error">
-                  <span aria-hidden="true">⚠</span> {err("alergias")}
-                </p>
-              )}
-            </div>
+              <div className="campo">
+                <label htmlFor={id("alergias")} className="campo__etiqueta">
+                  Alergias <span className="campo__ayuda">(opcional)</span>
+                </label>
+                <input
+                  id={id("alergias")}
+                  className="campo__control"
+                  maxLength={LARGO_ALERGIAS}
+                  placeholder="Ej.: maní, mariscos"
+                  value={fila.alergias}
+                  onChange={(e) => cambiar(fila.clave, "alergias", e.target.value)}
+                  aria-describedby={err("alergias") ? id("alergias-error") : undefined}
+                />
+                {err("alergias") && (
+                  <p id={id("alergias-error")} className="campo__error">
+                    <span aria-hidden="true">⚠</span> {err("alergias")}
+                  </p>
+                )}
+              </div>
 
-            <div className="campo">
-              <label htmlFor={id("notas")} className="campo__etiqueta">
-                Notas <span className="campo__ayuda">(opcional)</span>
-              </label>
-              <input
-                id={id("notas")}
-                className="campo__control"
-                maxLength={LARGO_NOTAS_ITEM}
-                placeholder="Ej.: sin cebolla"
-                value={fila.notas}
-                onChange={(e) => cambiar(fila.clave, "notas", e.target.value)}
-              />
+              <div className="campo">
+                <label htmlFor={id("notas")} className="campo__etiqueta">
+                  Notas <span className="campo__ayuda">(opcional)</span>
+                </label>
+                <input
+                  id={id("notas")}
+                  className="campo__control"
+                  maxLength={LARGO_NOTAS_ITEM}
+                  placeholder="Ej.: sin cebolla"
+                  value={fila.notas}
+                  onChange={(e) => cambiar(fila.clave, "notas", e.target.value)}
+                />
+              </div>
             </div>
 
             {filas.length > 1 && (
@@ -246,25 +229,30 @@ export function FormularioPedido({
         </Boton>
       )}
 
-      <div className="campo">
-        <label htmlFor="notas-pedido" className="campo__etiqueta">
-          Notas del pedido <span className="campo__ayuda">(opcional)</span>
-        </label>
-        <textarea
-          id="notas-pedido"
-          name="notas"
-          className="campo__control"
-          rows={2}
-          maxLength={LARGO_NOTAS_PEDIDO}
-        />
-      </div>
+      <div className="pedido-cierre">
+        <div className="campo">
+          <label htmlFor="notas-pedido" className="campo__etiqueta">
+            Notas del pedido <span className="campo__ayuda">(opcional)</span>
+          </label>
+          <textarea
+            id="notas-pedido"
+            name="notas"
+            className="campo__control"
+            rows={2}
+            maxLength={LARGO_NOTAS_PEDIDO}
+          />
+        </div>
 
-      <p className="total-estimado">
-        Total estimado: <strong>{moneda(totalEstimado)}</strong>
-      </p>
-      <Boton type="submit" disabled={enviando}>
-        {enviando ? "Enviando…" : "Enviar pedido a cocina"}
-      </Boton>
+        <div className="pedido-cierre__acciones">
+          <p className="total-estimado">
+            <span>Total estimado</span>
+            <strong>{moneda(totalEstimado)}</strong>
+          </p>
+          <Boton type="submit" disabled={enviando}>
+            {enviando ? "Enviando…" : "Enviar pedido a cocina"}
+          </Boton>
+        </div>
+      </div>
     </form>
   );
 }

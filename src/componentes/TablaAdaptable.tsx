@@ -19,11 +19,11 @@ interface Props<T> {
 /**
  * Tabla con encabezados (th scope="col") que en celular se muestra como
  * tarjetas: cada celda repite su encabezado (data-etiqueta) y no hay
- * desplazamiento horizontal a 320px. Desde 640px es una tabla normal.
+ * desplazamiento horizontal a 320px. Con suficiente ancho vuelve a ser una tabla.
  */
 export function TablaAdaptable<T>({ titulo, columnas, filas, claveFila, vacio }: Props<T>) {
   if (filas.length === 0) {
-    return <p>{vacio ?? "No hay resultados."}</p>;
+    return <p className="panel-vacio">{vacio ?? "No hay resultados."}</p>;
   }
   return (
     <table className="tabla-adaptable">
