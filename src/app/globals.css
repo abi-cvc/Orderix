@@ -1,4 +1,4 @@
-/* Paleta cálida de Orderix y estados con contraste sobre las superficies oscuras. */
+/* Paletas cálidas de Orderix y colores de estado. */
 :root {
   --color-fondo: #100904;
   --color-superficie: #1c130e;
@@ -9,12 +9,18 @@
   --color-borde-suave: #49392e;
 
   --color-primario: #382416;
-  --color-primario-hover: #543421;
+  --color-boton-primario: var(--color-primario);
+  --color-boton-primario-hover: #543421;
+  --color-boton-primario-texto: #ffedd7;
+  --color-portada-texto: #ffedd7;
+  --color-portada-acento: #f1ac7c;
   --color-acento: #f1ac7c;
   --color-peligro: #ffac9d;
   --color-peligro-hover: #572b25;
   --color-exito: #bad5a4;
   --color-aviso: #ecc180;
+  --color-entregado: #c9c3eb;
+  --color-velo-dialogo: rgb(16 9 4 / 0.78);
 
   --color-alergia-texto: #ffba9c;
   --color-alergia-fondo: #361d15;
@@ -26,6 +32,33 @@
   --ancho-contenido: 88rem;
 
   color-scheme: dark;
+}
+
+:root[data-tema="claro"] {
+  --color-fondo: #fffaf3;
+  --color-superficie: #f6eee3;
+  --color-panel: #ecddcc;
+  --color-texto: #2c1c12;
+  --color-texto-suave: #654d3a;
+  --color-borde: #947761;
+  --color-borde-suave: #d4bfaa;
+
+  --color-primario: #edd6c1;
+  --color-boton-primario: #613a26;
+  --color-boton-primario-hover: #452819;
+  --color-acento: #8e3e20;
+  --color-peligro: #9b3027;
+  --color-peligro-hover: #f7d8d2;
+  --color-exito: #3d5a2a;
+  --color-aviso: #76500b;
+  --color-entregado: #51467d;
+  --color-velo-dialogo: rgb(44 28 18 / 0.55);
+
+  --color-alergia-texto: #8e3020;
+  --color-alergia-fondo: #fbe1d5;
+  --color-foco: #8e3e20;
+
+  color-scheme: light;
 }
 
 *,
@@ -216,7 +249,14 @@ label:has(input[type="radio"]) {
   padding-block-start: 0.75rem;
 }
 
-.sesion > form {
+.sesion__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sesion__acciones > form {
   max-width: 100%;
 }
 
@@ -370,6 +410,56 @@ label:has(input[type="radio"]) {
   }
 }
 
+/* ------------------------------------------------ interruptor de tema */
+.tema-interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--objetivo-minimo);
+  padding: 0.25rem 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-texto);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.tema-interruptor:hover {
+  background: var(--color-panel);
+}
+
+.tema-interruptor__pista {
+  display: flex;
+  align-items: center;
+  flex: 0 0 2.125rem;
+  height: 1.25rem;
+  padding-inline: 0.1875rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+  background: var(--color-fondo);
+}
+
+.tema-interruptor__pista::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--color-texto-suave);
+}
+
+.tema-interruptor[aria-checked="true"] .tema-interruptor__pista {
+  justify-content: flex-end;
+  border-color: var(--color-boton-primario);
+  background: var(--color-boton-primario);
+}
+
+.tema-interruptor[aria-checked="true"] .tema-interruptor__pista::before {
+  background: var(--color-boton-primario-texto);
+}
+
 /* ------------------------------------------------ botones */
 .boton {
   display: inline-flex;
@@ -394,14 +484,14 @@ label:has(input[type="radio"]) {
 }
 
 .boton--primario {
-  background: var(--color-primario);
-  color: var(--color-texto);
+  background: var(--color-boton-primario);
+  color: var(--color-boton-primario-texto);
   border-color: var(--color-borde);
 }
 
 .boton--primario:hover {
-  background: var(--color-primario-hover);
-  color: var(--color-texto);
+  background: var(--color-boton-primario-hover);
+  color: var(--color-boton-primario-texto);
 }
 
 .boton--secundario {
@@ -529,7 +619,7 @@ select.campo__control {
 }
 
 .dialogo::backdrop {
-  background: rgb(16 9 4 / 0.78);
+  background: var(--color-velo-dialogo);
 }
 
 .dialogo .grupo-botones {
@@ -560,7 +650,7 @@ select.campo__control {
   color: var(--color-exito);
 }
 .estado--ENTREGADO {
-  color: #c9c3eb;
+  color: var(--color-entregado);
 }
 .estado--COBRADO {
   color: var(--color-texto);
@@ -1134,7 +1224,10 @@ textarea.campo__control {
 
 /* ------------------------------------------------ inicio */
 .inicio-portada {
+  --color-foco: var(--color-portada-acento);
+
   display: grid;
+  color: var(--color-portada-texto);
   align-items: end;
   min-height: clamp(19rem, 46vw, 28rem);
   isolation: isolate;
@@ -1152,6 +1245,7 @@ textarea.campo__control {
 }
 
 .inicio-portada .rotulo {
+  color: var(--color-portada-acento);
   margin: 0 0 0.75rem;
 }
 
@@ -1250,6 +1344,14 @@ textarea.campo__control {
   width: 100%;
   max-width: 31rem;
   margin-inline: auto;
+}
+
+.acceso-cuenta__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .acceso-cuenta__panel .autenticacion {

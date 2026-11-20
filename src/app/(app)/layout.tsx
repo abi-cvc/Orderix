@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SelectorTema } from "@/componentes/SelectorTema";
 import { Marca } from "@/componentes/Marca";
 import { NavegacionPrincipal } from "@/componentes/NavegacionPrincipal";
 import { FormularioCerrarSesion } from "@/componentes/FormularioCerrarSesion";
@@ -28,7 +29,10 @@ export default async function LayoutAplicacion({ children }: { children: ReactNo
               <span>{usuario.nombre}</span>
               <span className="usuario-actual__rol">{ETIQUETA_ROL[usuario.rol]}</span>
             </p>
-            <FormularioCerrarSesion csrf={await tokenCsrf()} />
+            <div className="sesion__acciones">
+              <SelectorTema />
+              <FormularioCerrarSesion csrf={await tokenCsrf()} />
+            </div>
           </div>
         </div>
       </header>

@@ -35,6 +35,39 @@ for (const { ruta, nombre } of PANTALLAS) {
   });
 }
 
+test("el modo claro se aplica en toda la app y se conserva al volver a cargar", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/login");
+  const interruptor = page.getByRole("switch", { name: "Modo claro" });
+  const raiz = page.locator("html");
+
+  await expect(interruptor).toHaveAttribute("aria-checked", "false");
+  await interruptor.press("Space");
+  await expect(interruptor).toHaveAttribute("aria-checked", "true");
+  await expect(raiz).toHaveCSS("color-scheme", "light");
+
+  await page.getByRole("link", { name: "Crear una cuenta" }).click();
+  await expect(page).toHaveURL(/\/registro$/);
+  await expect(interruptor).toHaveAttribute("aria-checked", "true");
+  await expect(raiz).toHaveCSS("color-scheme", "light");
+
+  for (const { ruta } of PANTALLAS) {
+    await page.goto(ruta);
+    await expect(raiz).toHaveCSS("color-scheme", "light");
+    await expect(interruptor).toHaveAttribute("aria-checked", "true");
+    expect(await raiz.evaluate((html) => html.scrollWidth), ruta).toBeLessThanOrEqual(320);
+    expect(await violaciones(page), ruta).toEqual([]);
+  }
+
+  await interruptor.click();
+  await expect(raiz).toHaveCSS("color-scheme", "dark");
+  await page.reload();
+  await expect(raiz).toHaveCSS("color-scheme", "dark");
+  await expect(interruptor).toHaveAttribute("aria-checked", "false");
+});
+
 test("axe: los errores del formulario siguen siendo accesibles", async ({ page }) => {
   await page.goto("/pedidos/nuevo");
   await page.getByRole("button", { name: "Enviar pedido a cocina" }).click();

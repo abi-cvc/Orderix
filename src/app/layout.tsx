@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
+import { ProveedorTema } from "@/componentes/SelectorTema";
+import { COOKIE_TEMA } from "@/lib/tema";
 import "./globals.css";
 
 // Todas las páginas se renderizan en cada petición: la CSP usa un nonce nuevo
@@ -21,15 +24,18 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const preferencia = (await cookies()).get(COOKIE_TEMA)?.value;
+  const tema = preferencia === "claro" ? "claro" : "oscuro";
+
   return (
-    <html lang="es">
+    <html lang="es" data-tema={tema}>
       <body>
         {/* Primer elemento enfocable de toda página (WCAG 2.4.1). */}
         <a href="#contenido" className="saltar">
           Saltar al contenido
         </a>
-        {children}
+        <ProveedorTema inicial={tema}>{children}</ProveedorTema>
       </body>
     </html>
   );
