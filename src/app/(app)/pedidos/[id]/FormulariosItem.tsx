@@ -4,12 +4,12 @@ import { useActionState } from "react";
 import { Anuncio } from "@/componentes/Anuncio";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
-import { moneda } from "@/lib/formato";
 import { CAMPO_CSRF } from "@/lib/seguridad/constantes";
 import type { ProductoParaPedido } from "@/modules/menu";
 import type { ItemGuardado } from "@/modules/pedidos";
 import { CANTIDAD_MAXIMA, LARGO_ALERGIAS, LARGO_NOTAS_ITEM } from "@/modules/pedidos/validadores";
 import { agregarItemAccion, editarItemAccion } from "../acciones";
+import { SelectorProducto } from "../SelectorProducto";
 
 /** Editar cantidad, alergias y notas de un ítem (desplegable nativo: accesible con teclado). */
 export function FormularioEditarItem({ item, csrf }: { item: ItemGuardado; csrf: string }) {
@@ -80,33 +80,12 @@ export function FormularioAgregarItem({
         <input type="hidden" name={CAMPO_CSRF} value={csrf} />
         <input type="hidden" name="pedidoId" value={pedidoId} />
         <Anuncio mensaje={estado.mensaje} tipo={estado.exito ? "exito" : "error"} />
-        <div className="campo">
-          <label htmlFor="agregar-producto" className="campo__etiqueta">
-            Producto
-          </label>
-          <select
-            id="agregar-producto"
-            name="productoId"
-            className="campo__control"
-            defaultValue=""
-            aria-invalid={errorProducto ? true : undefined}
-            aria-describedby={errorProducto ? "agregar-producto-error" : undefined}
-          >
-            <option value="" disabled>
-              Elige un producto
-            </option>
-            {productos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre} · {moneda(p.precio)}
-              </option>
-            ))}
-          </select>
-          {errorProducto && (
-            <p id="agregar-producto-error" className="campo__error">
-              <span aria-hidden="true">⚠</span> {errorProducto.join(" ")}
-            </p>
-          )}
-        </div>
+        <SelectorProducto
+          id="agregar-producto"
+          nombre="productoId"
+          productos={productos}
+          error={errorProducto?.join(" ")}
+        />
         <Campo
           nombre="cantidad"
           id="agregar-cantidad"

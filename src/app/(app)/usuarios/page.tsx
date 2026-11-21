@@ -30,11 +30,13 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Par
 
   return (
     <>
-      <h1>Usuarios</h1>
-      <p>
-        Las cuentas nuevas se registran como mesero. Asigna aquí el rol que corresponde. Al cambiar
-        el rol o desactivar una cuenta, se cierran sus sesiones abiertas.
-      </p>
+      <header className="pagina-cabecera">
+        <h1>Usuarios</h1>
+        <p>
+          Las cuentas nuevas se registran como mesero. Asigna aquí el rol que corresponde. Al
+          cambiar el rol o desactivar una cuenta, se cierran sus sesiones abiertas.
+        </p>
+      </header>
 
       <form method="get" action="/usuarios" className="filtros" aria-label="Buscar usuarios">
         <div className="campo">

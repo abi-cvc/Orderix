@@ -14,14 +14,18 @@ export default async function NuevoPedidoPage() {
 
   return (
     <>
-      <p>
-        <Link href="/pedidos">
-          <span aria-hidden="true">←</span> Volver a mis pedidos
-        </Link>
-      </p>
-      <h1>Nuevo pedido</h1>
+      <header className="pagina-cabecera">
+        <p>
+          <Link href="/pedidos">
+            <span aria-hidden="true">←</span> Volver a mis pedidos
+          </Link>
+        </p>
+        <h1>Nuevo pedido</h1>
+      </header>
       {productos.length === 0 ? (
-        <p>No hay productos disponibles en el menú. Pide al administrador que los active.</p>
+        <p className="panel-vacio">
+          No hay productos disponibles en el menú. Pide al administrador que los active.
+        </p>
       ) : (
         <FormularioPedido productos={productos} csrf={csrf} />
       )}
