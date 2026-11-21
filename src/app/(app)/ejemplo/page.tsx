@@ -51,8 +51,10 @@ export default async function EjemploPage({
 
   return (
     <>
-      <h1>Componentes de ejemplo</h1>
-      <p>Referencia para construir las pantallas. Los datos son ficticios.</p>
+      <header className="pagina-cabecera">
+        <h1>Componentes de ejemplo</h1>
+        <p>Referencia para construir las pantallas. Los datos son ficticios.</p>
+      </header>
 
       <section className="seccion" aria-labelledby="titulo-tabla">
         <h2 id="titulo-tabla">Listado paginado</h2>

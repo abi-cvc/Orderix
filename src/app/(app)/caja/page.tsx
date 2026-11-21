@@ -20,7 +20,9 @@ export default async function CajaPage() {
 
   return (
     <>
-      <h1>Caja</h1>
+      <header className="pagina-cabecera">
+        <h1>Caja</h1>
+      </header>
       <ActualizarConEventos eventos={["pedido.estadoCambiado"]} />
       <p role="status">
         {pedidos.length === 0

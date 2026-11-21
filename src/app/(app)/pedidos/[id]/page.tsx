@@ -54,15 +54,17 @@ export default async function DetallePedidoPage({ params, searchParams }: Props)
 
   return (
     <>
-      <p>
-        <Link href={volver}>
-          <span aria-hidden="true">←</span> Volver
-        </Link>
-      </p>
+      <header className="pagina-cabecera">
+        <p>
+          <Link href={volver}>
+            <span aria-hidden="true">←</span> Volver
+          </Link>
+        </p>
 
-      <h1>
-        Pedido {pedido.id} · Mesa {pedido.numeroMesa}
-      </h1>
+        <h1>
+          Pedido {pedido.id} · Mesa {pedido.numeroMesa}
+        </h1>
+      </header>
       <Anuncio tipo="exito" mensaje={creado ? "Pedido enviado a cocina." : undefined} />
       <ActualizarConEventos
         eventos={["pedido.estadoCambiado", "pedido.alergiaAgregada"]}

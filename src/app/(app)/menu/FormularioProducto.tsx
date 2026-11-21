@@ -28,7 +28,7 @@ export function FormularioProducto({ producto, csrf, accion }: Props) {
   const errores = estado.errores;
 
   return (
-    <form action={enviar} noValidate className="formulario-pedido">
+    <form action={enviar} noValidate className="formulario-producto">
       <input type="hidden" name={CAMPO_CSRF} value={csrf} />
       {producto && <input type="hidden" name="id" value={producto.id} />}
       <Anuncio mensaje={estado.exito === false ? estado.mensaje : undefined} tipo="error" />

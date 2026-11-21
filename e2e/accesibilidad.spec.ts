@@ -35,6 +35,39 @@ for (const { ruta, nombre } of PANTALLAS) {
   });
 }
 
+test("el modo claro se aplica en toda la app y se conserva al volver a cargar", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/login");
+  const interruptor = page.getByRole("switch", { name: "Modo claro" });
+  const raiz = page.locator("html");
+
+  await expect(interruptor).toHaveAttribute("aria-checked", "false");
+  await interruptor.press("Space");
+  await expect(interruptor).toHaveAttribute("aria-checked", "true");
+  await expect(raiz).toHaveCSS("color-scheme", "light");
+
+  await page.getByRole("link", { name: "Crear una cuenta" }).click();
+  await expect(page).toHaveURL(/\/registro$/);
+  await expect(interruptor).toHaveAttribute("aria-checked", "true");
+  await expect(raiz).toHaveCSS("color-scheme", "light");
+
+  for (const { ruta } of PANTALLAS) {
+    await page.goto(ruta);
+    await expect(raiz).toHaveCSS("color-scheme", "light");
+    await expect(interruptor).toHaveAttribute("aria-checked", "true");
+    expect(await raiz.evaluate((html) => html.scrollWidth), ruta).toBeLessThanOrEqual(320);
+    expect(await violaciones(page), ruta).toEqual([]);
+  }
+
+  await interruptor.click();
+  await expect(raiz).toHaveCSS("color-scheme", "dark");
+  await page.reload();
+  await expect(raiz).toHaveCSS("color-scheme", "dark");
+  await expect(interruptor).toHaveAttribute("aria-checked", "false");
+});
+
 test("axe: los errores del formulario siguen siendo accesibles", async ({ page }) => {
   await page.goto("/pedidos/nuevo");
   await page.getByRole("button", { name: "Enviar pedido a cocina" }).click();
@@ -42,6 +75,36 @@ test("axe: los errores del formulario siguen siendo accesibles", async ({ page }
   await expect(mesa).toHaveAttribute("aria-invalid", "true");
   await expect(mesa).toHaveAccessibleDescription(/Elige la mesa/);
   expect(await violaciones(page)).toEqual([]);
+});
+
+test("el catálogo permite buscar y elegir cada producto del pedido por separado", async ({
+  page,
+}) => {
+  await page.goto("/pedidos/nuevo");
+
+  const primeraFila = page.getByRole("group", { name: "Producto 1", exact: true });
+  const primerBuscador = primeraFila.getByRole("searchbox");
+  await primerBuscador.fill("cafe");
+  const cafe = primeraFila.getByRole("radio", { name: /Café pasado/ });
+  await primerBuscador.press("Tab");
+  await expect(cafe).toBeFocused();
+  await cafe.press("Space");
+  await expect(cafe).toBeChecked();
+
+  await page.getByRole("button", { name: "Agregar otro producto" }).click();
+  const segundaFila = page.getByRole("group", { name: "Producto 2", exact: true });
+  const segundoBuscador = segundaFila.getByRole("searchbox");
+  await expect(segundoBuscador).toBeFocused();
+  await segundoBuscador.fill("sin coincidencias");
+  await expect(segundaFila.getByRole("status")).toHaveText(
+    "No hay productos que coincidan con la búsqueda.",
+  );
+
+  await segundoBuscador.fill("limonada");
+  await segundaFila.getByText("Limonada", { exact: true }).click();
+  await expect(segundaFila.getByRole("radio", { name: /Limonada/ })).toBeChecked();
+  await expect(cafe).toBeChecked();
+  await expect(page.locator(".total-estimado")).toContainText("3,75");
 });
 
 test("teclado: el primer Tab es 'Saltar al contenido' y lleva al contenido", async ({ page }) => {

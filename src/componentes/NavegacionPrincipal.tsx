@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { IconoSeccion } from "./IconoSeccion";
 
 interface Props {
   elementos: { href: string; etiqueta: string }[];
@@ -42,6 +43,7 @@ export function NavegacionPrincipal({ elementos }: Props) {
         aria-controls="navegacion-principal"
         onClick={() => setAbierta((valor) => !valor)}
       >
+        <span className="nav__icono-menu" aria-hidden="true" />
         {abierta ? "Cerrar menú" : "Menú"}
       </button>
       <nav id="navegacion-principal" className="nav" aria-label="Principal" data-abierta={abierta}>
@@ -54,6 +56,7 @@ export function NavegacionPrincipal({ elementos }: Props) {
                 aria-current={esActual(href) ? "page" : undefined}
                 onClick={() => setAbierta(false)}
               >
+                <IconoSeccion ruta={href} />
                 {etiqueta}
               </Link>
             </li>

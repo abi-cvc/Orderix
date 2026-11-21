@@ -41,12 +41,14 @@ export default async function ProductoPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <p>
-        <Link href="/menu">
-          <span aria-hidden="true">←</span> Volver al menú
-        </Link>
-      </p>
-      <h1>{producto.nombre}</h1>
+      <header className="pagina-cabecera">
+        <p>
+          <Link href="/menu">
+            <span aria-hidden="true">←</span> Volver al menú
+          </Link>
+        </p>
+        <h1>{producto.nombre}</h1>
+      </header>
       <Anuncio
         tipo="estado"
         mensaje={`Precio actual: ${moneda(producto.precio)}. ${
