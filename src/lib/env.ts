@@ -16,10 +16,25 @@ const esquemaEnv = z
       .union([z.enum(Rol), z.literal("")])
       .optional()
       .transform((valor) => valor || undefined),
+    // Correo real (Brevo). Si falta la clave, los enlaces de recuperación se
+    // muestran en la consola del servidor (correo simulado).
+    BREVO_API_KEY: z
+      .string()
+      .optional()
+      .transform((valor) => valor || undefined),
+    CORREO_REMITENTE: z
+      .union([z.email(), z.literal("")])
+      .optional()
+      .transform((valor) => valor || undefined),
+    CORREO_REMITENTE_NOMBRE: z.string().min(1).max(60).default("Orderix"),
   })
   .refine((env) => !(env.NODE_ENV === "production" && env.DEV_FAKE_USER_ROLE), {
     message: "DEV_FAKE_USER_ROLE no puede estar activo en producción",
     path: ["DEV_FAKE_USER_ROLE"],
+  })
+  .refine((env) => !(env.BREVO_API_KEY && !env.CORREO_REMITENTE), {
+    message: "CORREO_REMITENTE es obligatorio cuando se define BREVO_API_KEY",
+    path: ["CORREO_REMITENTE"],
   });
 
 export type Env = z.infer<typeof esquemaEnv>;

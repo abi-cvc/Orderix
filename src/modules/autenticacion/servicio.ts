@@ -6,6 +6,7 @@ import { generarToken, hashearClave, hashearToken, verificarClave } from "@/lib/
 import { validar } from "@/lib/validacion";
 import { limitadorIntentos } from "@/lib/seguridad/limite";
 import { ipCliente } from "@/lib/seguridad/peticion";
+import { entregarEnlaceRecuperacion } from "./recuperacion-correo";
 import * as repositorio from "./repositorio";
 import { cerrarTodasLasSesiones } from "./sesion";
 import type { UsuarioSesion } from "./tipos";
@@ -32,7 +33,8 @@ export interface DependenciasAutenticacion {
   desconectarUsuario: (usuarioId: number) => void | Promise<void>;
   ahora: () => Date;
   obtenerUrlApp: () => string;
-  imprimirEnlace: (enlace: string) => void;
+  /** Envía el enlace de recuperación (correo real o, si no hay, consola). */
+  entregarEnlace: (destino: { correo: string; nombre: string }, enlace: string) => Promise<void>;
   obtenerIpCliente: () => Promise<string>;
   limitadorIntentos: typeof limitadorIntentos;
 }
@@ -51,8 +53,8 @@ const dependenciasReales: DependenciasAutenticacion = {
   },
   ahora: () => new Date(),
   obtenerUrlApp: () => env().APP_URL,
-  // En el primer bimestre el envío de correo se simula exclusivamente en consola.
-  imprimirEnlace: (enlace) => console.info("Enlace de recuperación de clave:", enlace),
+  // Correo real con Brevo si está configurado; si no, el enlace sale en la consola.
+  entregarEnlace: (destino, enlace) => entregarEnlaceRecuperacion(destino, enlace),
   obtenerIpCliente: async () => {
     // Carga diferida, como en sesion.ts: este módulo también lo importa server.ts.
     const { headers } = await import("next/headers");
@@ -112,7 +114,13 @@ export async function solicitarRecuperacion(
       hashToken: deps.hashearToken(token),
       caducaEn: new Date(deps.ahora().getTime() + 30 * 60_000),
     });
-    deps.imprimirEnlace(enlace.toString());
+    // Sin esperar el envío: así la respuesta tarda lo mismo exista o no la cuenta
+    // (esperar a Brevo solo en las cuentas reales delataría cuáles existen).
+    void deps
+      .entregarEnlace({ correo: datos.correo, nombre: usuario.nombre }, enlace.toString())
+      .catch((error: unknown) =>
+        console.error("Error al entregar el enlace de recuperación", error),
+      );
   }
   return {
     mensaje: "Si el correo corresponde a una cuenta activa, recibirás un enlace de recuperación.",
