@@ -14,6 +14,7 @@ import {
   editarItem,
   listarPedidos,
   obtenerPedido,
+  resumenDeServicio,
   type DependenciasPedidos,
 } from "./servicio";
 import { esquemaCrearPedido } from "./validadores";
@@ -323,4 +324,65 @@ test("cambiar la alergia de un ítem avisa a cocina; dejarla igual no", async ()
     editarItem(mesero, { itemId, cantidad: 1, alergias: "soya" }, entorno.deps),
     ErrorConflicto,
   );
+});
+
+// ----------------------------------------------------------------- resumen para reportes
+
+test("el resumen de servicio da la hora de cada paso y null en los que no ocurrieron", async () => {
+  const t = (minuto: number) => new Date(Date.UTC(2026, 10, 20, 12, minuto));
+  const consultas: unknown[] = [];
+  const deps = {
+    repositorio: {
+      listarResumen: async (filtro: unknown) => {
+        consultas.push(filtro);
+        return [
+          {
+            id: 7,
+            numeroMesa: 3,
+            meseroId: 1,
+            meseroNombre: "Lucía",
+            estado: EstadoPedido.COBRADO,
+            total: "10.00",
+            creadoEn: t(0),
+            cambios: [
+              { estado: EstadoPedido.CREADO, fecha: t(0) },
+              { estado: EstadoPedido.EN_PREPARACION, fecha: t(2) },
+              { estado: EstadoPedido.LISTO, fecha: t(14) },
+              { estado: EstadoPedido.ENTREGADO, fecha: t(16) },
+              { estado: EstadoPedido.COBRADO, fecha: t(50) },
+            ],
+          },
+          {
+            id: 8,
+            numeroMesa: 5,
+            meseroId: 1,
+            meseroNombre: "Lucía",
+            estado: EstadoPedido.CANCELADO,
+            total: "4.00",
+            creadoEn: t(5),
+            cambios: [
+              { estado: EstadoPedido.CREADO, fecha: t(5) },
+              { estado: EstadoPedido.CANCELADO, fecha: t(6) },
+            ],
+          },
+        ];
+      },
+    },
+  } as unknown as Pick<DependenciasPedidos, "repositorio">;
+
+  const filtro = { meseroId: 1, desde: t(0), hasta: t(60) };
+  const [cobrado, cancelado] = await resumenDeServicio(filtro, deps);
+
+  assert.deepEqual(consultas, [filtro]);
+  assert.equal(cobrado?.enPreparacionEn?.getTime(), t(2).getTime());
+  assert.equal(cobrado?.listoEn?.getTime(), t(14).getTime());
+  assert.equal(cobrado?.entregadoEn?.getTime(), t(16).getTime());
+  assert.equal(cobrado?.cobradoEn?.getTime(), t(50).getTime());
+  assert.equal(cobrado?.canceladoEn, null);
+  assert.equal(cancelado?.canceladoEn?.getTime(), t(6).getTime());
+  assert.equal(cancelado?.listoEn, null);
+
+  // Un rango vacío o invertido no consulta la base.
+  assert.deepEqual(await resumenDeServicio({ desde: t(10), hasta: t(10) }, deps), []);
+  assert.equal(consultas.length, 1);
 });

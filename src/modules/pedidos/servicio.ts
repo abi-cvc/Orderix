@@ -342,6 +342,56 @@ export async function obtenerEstadoPedido(
   return pedido ? { id: pedido.id, estado: pedido.estado } : null;
 }
 
+/** Un pedido con la hora de cada paso del flujo (null si no llegó a ese estado). */
+export interface ResumenPedido {
+  pedidoId: number;
+  numeroMesa: number;
+  meseroId: number;
+  meseroNombre: string;
+  estado: EstadoPedido;
+  total: string;
+  creadoEn: Date;
+  enPreparacionEn: Date | null;
+  listoEn: Date | null;
+  entregadoEn: Date | null;
+  cobradoEn: Date | null;
+  canceladoEn: Date | null;
+}
+
+/**
+ * CONTRATO (reporte por mesero, frente B): pedidos creados en [desde, hasta),
+ * de un mesero o de todos, con la hora de cada cambio de estado.
+ *
+ * No decide permisos: el servicio que lo usa comprueba quién puede ver qué
+ * (el mesero solo lo suyo; el administrador, todo).
+ */
+export async function resumenDeServicio(
+  filtro: { meseroId?: number; desde: Date; hasta: Date },
+  deps: Pick<DependenciasPedidos, "repositorio"> = dependenciasReales,
+): Promise<ResumenPedido[]> {
+  if (!(filtro.desde < filtro.hasta)) return [];
+  const filas = await deps.repositorio.listarResumen(filtro);
+  return filas.map((fila) => {
+    // Primera vez que el pedido llegó a cada estado.
+    const cuando = (estado: EstadoPedido) =>
+      fila.cambios.find((cambio) => cambio.estado === estado)?.fecha ?? null;
+    return {
+      pedidoId: fila.id,
+      numeroMesa: fila.numeroMesa,
+      meseroId: fila.meseroId,
+      meseroNombre: fila.meseroNombre,
+      estado: fila.estado,
+      total: fila.total,
+      creadoEn: fila.creadoEn,
+      enPreparacionEn: cuando(EstadoPedido.EN_PREPARACION),
+      listoEn: cuando(EstadoPedido.LISTO),
+      entregadoEn: cuando(EstadoPedido.ENTREGADO),
+      cobradoEn: cuando(EstadoPedido.COBRADO),
+      canceladoEn: cuando(EstadoPedido.CANCELADO),
+    };
+  });
+}
+
 /** CONTRATO (reporte opcional, frente B): pedidos de un mesero en un rango [desde, hasta). */
 export function pedidosDeMeseroEntreFechas(
   meseroId: number,

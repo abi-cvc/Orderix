@@ -39,7 +39,7 @@ El mesero puede cancelar solo antes de que cocina empiece; el cajero, mientras n
 
 ## Funcionalidades
 
-- **Cuentas:** registro (siempre con rol mesero; el administrador asigna roles), inicio y cierre de sesión, recuperación de clave con enlace de un solo uso que vence en 30 minutos (el correo se simula en la consola del servidor).
+- **Cuentas:** registro (siempre con rol mesero; el administrador asigna roles), inicio y cierre de sesión, recuperación de clave con enlace de un solo uso que vence en 30 minutos, enviado por correo con Brevo (o mostrado en la consola del servidor si el correo no está configurado).
 - **Pedidos (CRUD):** crear con varios productos, alergias y notas; listado paginado con filtros por número, mesa y estado; detalle por id con historial; agregar o editar ítems; cancelar con confirmación.
 - **Cocina y caja:** cola de cocina en tarjetas con alergias resaltadas; pantalla de caja con los pedidos por cobrar.
 - **Menú (CRUD):** productos con búsqueda por nombre, filtros por categoría y disponibilidad, paginación, activar, desactivar y eliminar con confirmación.
@@ -112,17 +112,20 @@ Para levantar todo con Docker (aplicación + base): `docker build -t orderix-app
 
 Copia `.env.example` como `.env`. El archivo `.env` nunca se sube al repositorio.
 
-| Variable             | Para qué sirve                                                                             | Ejemplo local                                               |
-| -------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| `NODE_ENV`           | `development`, `test` o `production`                                                       | `development`                                               |
-| `HOST`, `PORT`       | Dirección y puerto del servidor (Render define `PORT`)                                     | `0.0.0.0`, `3000`                                           |
-| `APP_URL`            | URL pública exacta; se usa para verificar el origen de formularios y WebSocket             | `http://localhost:3000`                                     |
-| `DATABASE_URL`       | Conexión que usa la aplicación (en Neon, la cadena con pooler)                             | `postgresql://orderix:orderix_local@localhost:5432/orderix` |
-| `DIRECT_URL`         | Conexión que usan las migraciones (en Neon, la cadena directa)                             | igual que `DATABASE_URL`                                    |
-| `TRUST_PROXY`        | `true` detrás del proxy de Render, para obtener la IP real del cliente                     | `false`                                                     |
-| `SESSION_SECRET`     | Secreto que firma los tokens CSRF. Mínimo 32 caracteres aleatorios                         | genera uno con el comando de abajo                          |
-| `SESSION_TTL_HOURS`  | Duración de la sesión en horas                                                             | `8`                                                         |
-| `DEV_FAKE_USER_ROLE` | Solo desarrollo: usuario falso con ese rol. El servidor no arranca si se usa en producción | vacío                                                       |
+| Variable                  | Para qué sirve                                                                                                | Ejemplo local                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `NODE_ENV`                | `development`, `test` o `production`                                                                          | `development`                                               |
+| `HOST`, `PORT`            | Dirección y puerto del servidor (Render define `PORT`)                                                        | `0.0.0.0`, `3000`                                           |
+| `APP_URL`                 | URL pública exacta; se usa para verificar el origen de formularios y WebSocket                                | `http://localhost:3000`                                     |
+| `DATABASE_URL`            | Conexión que usa la aplicación (en Neon, la cadena con pooler)                                                | `postgresql://orderix:orderix_local@localhost:5432/orderix` |
+| `DIRECT_URL`              | Conexión que usan las migraciones (en Neon, la cadena directa)                                                | igual que `DATABASE_URL`                                    |
+| `TRUST_PROXY`             | `true` detrás del proxy de Render, para obtener la IP real del cliente                                        | `false`                                                     |
+| `SESSION_SECRET`          | Secreto que firma los tokens CSRF. Mínimo 32 caracteres aleatorios                                            | genera uno con el comando de abajo                          |
+| `SESSION_TTL_HOURS`       | Duración de la sesión en horas                                                                                | `8`                                                         |
+| `DEV_FAKE_USER_ROLE`      | Solo desarrollo: usuario falso con ese rol. El servidor no arranca si se usa en producción                    | vacío                                                       |
+| `BREVO_API_KEY`           | Opcional. Clave de la API de Brevo para enviar el correo de recuperación. Vacía: el enlace sale en la consola | vacío                                                       |
+| `CORREO_REMITENTE`        | Correo remitente verificado en Brevo (obligatorio si hay `BREVO_API_KEY`)                                     | vacío                                                       |
+| `CORREO_REMITENTE_NOMBRE` | Nombre del remitente en los correos                                                                           | `Orderix`                                                   |
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"

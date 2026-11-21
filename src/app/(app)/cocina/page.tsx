@@ -4,7 +4,9 @@ import { ActualizarConEventos } from "@/componentes/ActualizarConEventos";
 import { EtiquetaEstado } from "@/componentes/EtiquetaEstado";
 import { FormularioAccion } from "@/componentes/FormularioAccion";
 import { Rol } from "@/generated/prisma/enums";
-import { hora, minutosDesde } from "@/lib/formato";
+import { TiempoEspera } from "@/componentes/TiempoEspera";
+import { MINUTOS_DEMORADO } from "@/lib/espera";
+import { minutosEsperando } from "@/lib/formato";
 import { usuarioDePagina } from "@/lib/pagina";
 import { tokenCsrf } from "@/modules/autenticacion";
 import { colaCocina } from "@/modules/pedidos";
@@ -22,6 +24,9 @@ export const metadata: Metadata = { title: "Cocina" };
 export default async function CocinaPage() {
   const usuario = await usuarioDePagina(Rol.COCINA);
   const [pedidos, csrf] = await Promise.all([colaCocina(usuario), tokenCsrf()]);
+  const demorados = pedidos.filter(
+    (pedido) => minutosEsperando(pedido.creadoEn) >= MINUTOS_DEMORADO,
+  ).length;
 
   return (
     <>
@@ -34,7 +39,9 @@ export default async function CocinaPage() {
       <p role="status" className={pedidos.length === 0 ? "panel-vacio" : undefined}>
         {pedidos.length === 0
           ? "No hay pedidos pendientes."
-          : `${pedidos.length} ${pedidos.length === 1 ? "pedido pendiente" : "pedidos pendientes"}.`}
+          : `${pedidos.length} ${pedidos.length === 1 ? "pedido pendiente" : "pedidos pendientes"}${
+              demorados > 0 ? `, ${demorados} con más de ${MINUTOS_DEMORADO} minutos de espera` : ""
+            }.`}
       </p>
 
       <ul className="rejilla rejilla--cocina">
@@ -49,9 +56,7 @@ export default async function CocinaPage() {
                 </h2>
                 <p className="tarjeta__meta">
                   <EtiquetaEstado estado={pedido.estado} />
-                  <time dateTime={pedido.creadoEn.toISOString()}>
-                    {hora(pedido.creadoEn)} ({minutosDesde(pedido.creadoEn)})
-                  </time>
+                  <TiempoEspera desde={pedido.creadoEn.toISOString()} />
                   <span className="campo__ayuda">{pedido.meseroNombre}</span>
                 </p>
                 <ul className="lista-cocina">

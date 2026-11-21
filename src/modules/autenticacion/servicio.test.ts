@@ -38,6 +38,7 @@ function preparar() {
     >[0];
     cambio?: Parameters<DependenciasAutenticacion["repositorio"]["consumirTokenYCambiarClave"]>[0];
     enlace?: string;
+    destino?: { correo: string; nombre: string };
     sesionesCerradas?: number;
     usuarioDesconectado?: number;
   } = {};
@@ -75,8 +76,9 @@ function preparar() {
     obtenerIpCliente: async () => "192.0.2.1",
     limitadorIntentos: crearLimitadorIntentos(),
     obtenerUrlApp: () => "https://orderix.example",
-    imprimirEnlace: (enlace) => {
+    entregarEnlace: async (destino, enlace) => {
       guardado.enlace = enlace;
+      guardado.destino = destino;
     },
   };
   return { deps, guardado };
@@ -150,7 +152,7 @@ test("correo desconocido, clave incorrecta e inactividad tienen el mismo error",
   }
 });
 
-test("recuperación guarda solo SHA-256, vence en 30 minutos e imprime el enlace", async () => {
+test("recuperación guarda solo SHA-256, vence en 30 minutos y entrega el enlace a su dueño", async () => {
   const { deps, guardado } = preparar();
   await solicitarRecuperacion({ correo: "a@example.com" }, deps);
   assert.deepEqual(guardado.recuperacion, {
@@ -159,6 +161,7 @@ test("recuperación guarda solo SHA-256, vence en 30 minutos e imprime el enlace
     caducaEn: new Date("2026-11-16T12:30:00Z"),
   });
   assert.equal(new URL(guardado.enlace!).searchParams.get("token"), token);
+  assert.deepEqual(guardado.destino, { correo: "a@example.com", nombre: usuario.nombre });
 });
 
 test("recuperación responde igual para correo existente, desconocido e inactivo", async () => {

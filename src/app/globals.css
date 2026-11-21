@@ -1666,3 +1666,32 @@ textarea.campo__control {
   width: 100%;
   background: var(--color-superficie);
 }
+
+/* ------------------------------------------------ espera en cocina */
+.tiempo-espera {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Etiqueta con texto y símbolo: el color solo refuerza. */
+.espera {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.6rem;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.espera--demorado {
+  color: var(--color-aviso);
+}
+
+.espera--urgente {
+  color: var(--color-peligro);
+}
