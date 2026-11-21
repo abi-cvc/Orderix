@@ -5,7 +5,7 @@
  * Los validadores y las reglas de estado (estados.ts) se importan directo
  * porque también los usa el navegador.
  */
-export type { CambioGuardado, ItemGuardado, PedidoGuardado } from "./servicio";
+export type { CambioGuardado, ItemGuardado, PedidoGuardado, ResumenPedido } from "./servicio";
 export {
   agregarItems,
   cambiarEstado,
@@ -18,4 +18,5 @@ export {
   pedidosDeMeseroEntreFechas,
   pedidosPorCobrar,
   quitarItem,
+  resumenDeServicio,
 } from "./servicio";
