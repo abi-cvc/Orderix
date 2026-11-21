@@ -207,6 +207,47 @@ export async function listarDeMeseroEntreFechas(
   return filas.map(aPedido);
 }
 
+/** Fila del resumen de servicio: datos mínimos del pedido y sus cambios de estado. */
+export interface FilaResumen {
+  id: number;
+  numeroMesa: number;
+  meseroId: number;
+  meseroNombre: string;
+  estado: EstadoPedido;
+  total: string;
+  creadoEn: Date;
+  cambios: { estado: EstadoPedido; fecha: Date }[];
+}
+
+/**
+ * Pedidos creados en [desde, hasta), de un mesero o de todos, con sus cambios
+ * de estado en la MISMA consulta (sin N+1). Lo usa el reporte por mesero.
+ */
+export async function listarResumen(filtro: {
+  meseroId?: number;
+  desde: Date;
+  hasta: Date;
+}): Promise<FilaResumen[]> {
+  const filas = await prisma().pedido.findMany({
+    where: { meseroId: filtro.meseroId, creadoEn: { gte: filtro.desde, lt: filtro.hasta } },
+    orderBy: [{ creadoEn: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      numeroMesa: true,
+      meseroId: true,
+      meseroNombre: true,
+      estado: true,
+      total: true,
+      creadoEn: true,
+      cambios: {
+        select: { estado: true, fecha: true },
+        orderBy: [{ fecha: "asc" }, { id: "asc" }],
+      },
+    },
+  });
+  return filas.map((fila) => ({ ...fila, total: fila.total.toFixed(2) }));
+}
+
 // ------------------------------------------------------------------ escritura
 
 /** Crea el pedido con sus ítems y el primer cambio de estado, todo o nada. */
