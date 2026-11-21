@@ -44,3 +44,8 @@ export function minutosDesde(fecha: Date | string, ahora = Date.now()): string {
   if (minutos < 60) return `hace ${minutos} min`;
   return `hace ${Math.floor(minutos / 60)} h ${minutos % 60} min`;
 }
+
+/** Minutos enteros transcurridos desde una fecha (para clasificar la espera). */
+export function minutosEsperando(fecha: Date | string, ahora = Date.now()): number {
+  return Math.max(0, Math.floor((ahora - new Date(fecha).getTime()) / 60_000));
+}
