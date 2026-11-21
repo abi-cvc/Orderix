@@ -11,9 +11,9 @@ export default async function RecuperarPage() {
       <h1>Recuperar clave</h1>
       <p>Ingresa tu correo para solicitar un enlace con el que podrás cambiar tu clave.</p>
       <FormularioAutenticacion modo="recuperar" csrf={await tokenCsrf()} />
-      <p>
+      <nav aria-label="Opciones de acceso" className="autenticacion__enlaces">
         <Link href="/login">Volver a iniciar sesión</Link>
-      </p>
+      </nav>
     </>
   );
 }
