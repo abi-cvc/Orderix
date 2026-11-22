@@ -1695,3 +1695,47 @@ textarea.campo__control {
 .espera--urgente {
   color: var(--color-peligro);
 }
+
+/* ------------------------------------------------ campo con botón (ver clave) */
+.campo__grupo {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.campo__grupo .campo__control {
+  padding-right: calc(var(--objetivo-minimo) + 0.5rem);
+}
+
+/* Edge trae su propio botón para ver la clave: se oculta para no tener dos. */
+.campo__control::-ms-reveal,
+.campo__control::-ms-clear {
+  display: none;
+}
+
+.campo__accesorio {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ver-clave {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--objetivo-minimo);
+  min-height: var(--objetivo-minimo);
+  padding: 0;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+}
+
+.ver-clave:hover,
+.ver-clave[aria-pressed="true"] {
+  color: var(--color-texto);
+}
