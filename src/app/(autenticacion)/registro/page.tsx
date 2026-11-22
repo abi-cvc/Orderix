@@ -11,9 +11,9 @@ export default async function RegistroPage() {
       <h1>Crear cuenta</h1>
       <p>Tu cuenta tendrá el rol de mesero. El administrador puede cambiarlo después.</p>
       <FormularioAutenticacion modo="registro" csrf={await tokenCsrf()} />
-      <p>
+      <nav aria-label="Opciones de acceso" className="autenticacion__enlaces">
         <Link href="/login">Ya tengo una cuenta. Iniciar sesión</Link>
-      </p>
+      </nav>
     </>
   );
 }

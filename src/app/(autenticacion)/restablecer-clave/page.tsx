@@ -32,12 +32,10 @@ export default async function RestablecerPage({
           tipo="error"
         />
       )}
-      <p>
+      <nav aria-label="Opciones de acceso" className="autenticacion__enlaces">
         <Link href="/recuperar">Solicitar otro enlace de recuperación</Link>
-      </p>
-      <p>
         <Link href="/login">Volver a iniciar sesión</Link>
-      </p>
+      </nav>
     </>
   );
 }

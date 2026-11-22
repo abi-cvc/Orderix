@@ -5,6 +5,7 @@ import { useActionState, useState, type FormEvent } from "react";
 import { Anuncio } from "@/componentes/Anuncio";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
+import { CampoClave } from "@/componentes/CampoClave";
 import { estadoDeError, type EstadoFormulario } from "@/lib/formularios";
 import { CAMPO_CSRF } from "@/lib/seguridad/constantes";
 import { validar } from "@/lib/validacion";
@@ -102,10 +103,9 @@ export function FormularioAutenticacion({ modo, csrf, token }: Props) {
             />
           )}
           {modo !== "recuperar" && (
-            <Campo
+            <CampoClave
               nombre="clave"
               etiqueta={modo === "restablecer" ? "Nueva clave" : "Clave"}
-              type="password"
               autoComplete={modo === "login" ? "current-password" : "new-password"}
               required
               minLength={modo === "login" ? undefined : 10}

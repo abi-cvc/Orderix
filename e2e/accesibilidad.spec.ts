@@ -20,6 +20,8 @@ async function violaciones(page: Page) {
 
 const PANTALLAS = [
   { ruta: "/login", nombre: "inicio de sesión" },
+  { ruta: "/registro", nombre: "crear cuenta" },
+  { ruta: "/recuperar", nombre: "recuperar clave" },
   { ruta: "/", nombre: "inicio" },
   { ruta: "/ejemplo", nombre: "componentes de ejemplo" },
   { ruta: "/pedidos", nombre: "listado de pedidos" },
@@ -34,6 +36,32 @@ for (const { ruta, nombre } of PANTALLAS) {
     expect(await violaciones(page)).toEqual([]);
   });
 }
+
+test("el botón del ojo muestra y oculta la clave, con teclado, y la oculta al enviar", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  const clave = page.getByLabel("Clave", { exact: true });
+  const ojo = page.getByRole("button", { name: "Mostrar clave" });
+  await clave.fill("clave-de-prueba");
+  await expect(clave).toHaveAttribute("type", "password");
+  await expect(ojo).toHaveAttribute("aria-pressed", "false");
+
+  await clave.press("Tab");
+  await expect(ojo).toBeFocused();
+  await ojo.press("Enter");
+  await expect(clave).toHaveAttribute("type", "text");
+  await expect(ojo).toHaveAttribute("aria-pressed", "true");
+  await expect(clave).toHaveValue("clave-de-prueba");
+
+  await ojo.press("Space");
+  await expect(clave).toHaveAttribute("type", "password");
+
+  await ojo.click();
+  await page.getByLabel(/correo/i).fill("nadie@example.com");
+  await page.getByRole("button", { name: "Iniciar sesión" }).click();
+  await expect(clave).toHaveAttribute("type", "password");
+});
 
 test("el modo claro se aplica en toda la app y se conserva al volver a cargar", async ({
   page,
