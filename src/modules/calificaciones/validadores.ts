@@ -4,7 +4,7 @@
  * Archivo seguro para el navegador: el formulario usa el MISMO esquema para
  * validar antes de enviar, y el servicio lo vuelve a usar en el servidor.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const PUNTAJE_MINIMO = 1;
 export const PUNTAJE_MAXIMO = 5;
