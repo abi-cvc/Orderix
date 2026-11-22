@@ -34,6 +34,12 @@ const soloRepositorios = [
   },
 ];
 
+/** Zod se importa desde @/lib/zod, que lo configura antes de crear cualquier esquema. */
+const zodDirecto = {
+  name: "zod",
+  message: 'Importa z desde "@/lib/zod": ahí está configurado (español y sin eval, por la CSP).',
+};
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -55,6 +61,16 @@ export default defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx}", "server.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { paths: [...soloRepositorios, zodDirecto], patterns: [importacionesProfundas] },
+      ],
+    },
+  },
+  {
+    // Únicos archivos que importan "zod" directamente.
+    files: ["src/lib/zod.ts", "src/lib/env.ts"],
     rules: {
       "no-restricted-imports": [
         "error",

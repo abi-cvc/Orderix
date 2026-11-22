@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const LARGO_NOMBRE = 120;
 export const LARGO_DESCRIPCION = 500;

@@ -4,7 +4,7 @@
  * Archivo seguro para el navegador: los formularios usan los MISMOS esquemas
  * para validar antes de enviar, y el servicio los vuelve a usar en el servidor.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { EstadoPedido } from "@/generated/prisma/enums";
 
 /** Mesas del restaurante (las mismas que usa prisma/seed-volumen.ts). */

@@ -1,5 +1,5 @@
 /** Esquemas compartidos por los formularios y el servicio, sin dependencias de servidor. */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { Rol } from "@/generated/prisma/enums";
 
 const correo = z
