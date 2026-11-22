@@ -1,6 +1,6 @@
 "use server";
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { estadoDeError, type EstadoFormulario } from "@/lib/formularios";
 import { validar } from "@/lib/validacion";
 import { protegerFormulario, requireRole } from "@/modules/autenticacion";
