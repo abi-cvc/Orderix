@@ -88,13 +88,21 @@ export function ChatCliente({ usuarioActualId }: Props) {
     socket.on("chat:historial", alRecibirHistorial);
     socket.on("chat:mensaje", alRecibirMensaje);
 
-    // Pedir historial al montar
+    // Pedir historial y lista de conectados al montar
     socket.emit(
       "chat:historial",
       "general",
       (respuesta: { ok: boolean; mensajes?: MensajeGuardado[] }) => {
         if (respuesta?.ok && respuesta.mensajes) {
           setMensajes(respuesta.mensajes);
+        }
+      },
+    );
+    socket.emit(
+      "chat:conectados",
+      (respuesta: { ok: boolean; conectados?: UsuarioConectado[] }) => {
+        if (respuesta?.ok && respuesta.conectados) {
+          setConectados(respuesta.conectados);
         }
       },
     );
@@ -120,6 +128,11 @@ export function ChatCliente({ usuarioActualId }: Props) {
   const alEnviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (enviando) return;
+
+    if (!texto.trim()) {
+      setErrores(["El mensaje no puede estar vacío."]);
+      return;
+    }
 
     const resultado = esquemaTextoMensaje.safeParse(texto);
     if (!resultado.success) {
@@ -155,8 +168,13 @@ export function ChatCliente({ usuarioActualId }: Props) {
 
   return (
     <div className="chat-layout">
-      {/* Región viva cortés solo para anuncios de mensajes nuevos */}
-      <div aria-live="polite" aria-atomic="true" className="solo-lector">
+      {/* Región viva cortés solo para anuncios de mensajes nuevos (sin re-anunciar cambios) */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        aria-relevant="additions"
+        className="solo-lector"
+      >
         {anuncioNuevo}
       </div>
 
@@ -179,12 +197,15 @@ export function ChatCliente({ usuarioActualId }: Props) {
       <div className="chat-principal">
         {/* Panel de conversación */}
         <section className="seccion chat-conversacion" aria-label="Mensajes del chat">
+          {/* eslint-disable jsx-a11y/no-noninteractive-tabindex */}
           <div
             ref={contenedorMensajesRef}
             className="chat-mensajes"
-            role="region"
-            aria-label="Historial de mensajes de la sala general"
+            role="log"
+            aria-label="Mensajes del chat"
+            tabIndex={0}
           >
+            {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
             {mensajes.length === 0 ? (
               <p className="campo__ayuda chat-mensajes__vacio">
                 No hay mensajes aún en esta sala. Sé el primero en escribir.
@@ -235,7 +256,8 @@ export function ChatCliente({ usuarioActualId }: Props) {
               <Boton
                 type="submit"
                 variante="primario"
-                disabled={enviando || !texto.trim() || estadoConexion !== "conectado"}
+                disabled={enviando || estadoConexion !== "conectado"}
+                aria-disabled={!texto.trim() || enviando || estadoConexion !== "conectado"}
               >
                 {enviando ? "Enviando..." : "Enviar"}
               </Boton>
