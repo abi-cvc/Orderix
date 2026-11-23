@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ActualizarConEventos } from "@/componentes/ActualizarConEventos";
 import { EtiquetaEstado } from "@/componentes/EtiquetaEstado";
 import { FormularioAccion } from "@/componentes/FormularioAccion";
+import { InterruptorSonido } from "@/componentes/InterruptorSonido";
 import { Rol } from "@/generated/prisma/enums";
 import { TiempoEspera } from "@/componentes/TiempoEspera";
 import { MINUTOS_DEMORADO } from "@/lib/espera";
@@ -30,11 +31,13 @@ export default async function CocinaPage() {
 
   return (
     <>
-      <header className="pagina-cabecera">
+      <header className="pagina-cabecera titulo-con-accion">
         <h1>Cocina</h1>
+        <InterruptorSonido />
       </header>
       <ActualizarConEventos
         eventos={["pedido.creado", "pedido.estadoCambiado", "pedido.alergiaAgregada"]}
+        sonido
       />
       <p role="status" className={pedidos.length === 0 ? "panel-vacio" : undefined}>
         {pedidos.length === 0
