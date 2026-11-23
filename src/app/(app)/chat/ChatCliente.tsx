@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
+import { fechaHora, formatearHoraRelativa } from "@/lib/formato";
 import { obtenerSocket } from "@/lib/socket-cliente";
 import {
   formatearTextoEscribiendo,
@@ -17,19 +18,8 @@ interface Props {
 
 type EstadoConexion = "conectando" | "conectado" | "error" | "desconectado";
 
-function formatearHora(fecha: Date | string): string {
-  try {
-    const d = typeof fecha === "string" ? new Date(fecha) : fecha;
-    return new Intl.DateTimeFormat("es-EC", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(d);
-  } catch {
-    return "";
-  }
-}
-
 export function ChatCliente({ usuarioActualId }: Props) {
+  const [ahoraGlobal, setAhoraGlobal] = useState<number>(() => Date.now());
   const [estadoConexion, setEstadoConexion] = useState<EstadoConexion>(() => {
     if (typeof window !== "undefined") {
       return obtenerSocket().connected ? "conectado" : "conectando";
@@ -179,6 +169,14 @@ export function ChatCliente({ usuarioActualId }: Props) {
     }
   }, [mensajes]);
 
+  // Temporizador global para actualizar la hora relativa cada 30 segundos
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setAhoraGlobal(Date.now());
+    }, 30_000);
+    return () => clearInterval(intervalo);
+  }, []);
+
   const alEnviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (enviando) return;
@@ -282,8 +280,9 @@ export function ChatCliente({ usuarioActualId }: Props) {
                         <time
                           className="chat-burbuja__hora"
                           dateTime={new Date(mensaje.enviadoEn).toISOString()}
+                          title={fechaHora(mensaje.enviadoEn)}
                         >
-                          {formatearHora(mensaje.enviadoEn)}
+                          {formatearHoraRelativa(mensaje.enviadoEn, ahoraGlobal)}
                         </time>
                       </div>
                       <p className="chat-burbuja__texto">{mensaje.texto}</p>
