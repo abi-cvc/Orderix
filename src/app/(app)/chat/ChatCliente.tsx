@@ -4,7 +4,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
 import { obtenerSocket } from "@/lib/socket-cliente";
-import type { MensajeGuardado, UsuarioConectado } from "@/modules/tiempo-real";
+import {
+  formatearTextoEscribiendo,
+  type MensajeGuardado,
+  type UsuarioConectado,
+} from "@/modules/tiempo-real";
 import { esquemaTextoMensaje } from "@/modules/tiempo-real/validadores";
 
 interface Props {
@@ -39,7 +43,10 @@ export function ChatCliente({ usuarioActualId }: Props) {
   const [enviando, setEnviando] = useState(false);
   const [avisoLimite, setAvisoLimite] = useState<string>();
   const [anuncioNuevo, setAnuncioNuevo] = useState<string>();
+  const [escribiendoMap, setEscribiendoMap] = useState<Map<number, string>>(new Map());
   const contenedorMensajesRef = useRef<HTMLDivElement>(null);
+  const temporizadoresEscribiendoRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const ultimoEnvioEscribiendoRef = useRef<number>(0);
 
   useEffect(() => {
     const socket = obtenerSocket();
@@ -70,14 +77,53 @@ export function ChatCliente({ usuarioActualId }: Props) {
       setMensajes(historial);
     };
 
+    const temporizadores = temporizadoresEscribiendoRef.current;
+
     const alRecibirMensaje = (nuevoMensaje: MensajeGuardado) => {
       setMensajes((anteriores) => {
         if (anteriores.some((m) => m.id === nuevoMensaje.id)) return anteriores;
         return [...anteriores, nuevoMensaje];
       });
 
+      // Si el autor del mensaje estaba escribiendo, quitarlo inmediatamente
+      const timer = temporizadoresEscribiendoRef.current.get(nuevoMensaje.autorId);
+      if (timer) {
+        clearTimeout(timer);
+        temporizadoresEscribiendoRef.current.delete(nuevoMensaje.autorId);
+      }
+      setEscribiendoMap((prev) => {
+        if (!prev.has(nuevoMensaje.autorId)) return prev;
+        const nuevo = new Map(prev);
+        nuevo.delete(nuevoMensaje.autorId);
+        return nuevo;
+      });
+
       // Se anuncia cortésmente el mensaje nuevo sin mover el foco
       setAnuncioNuevo(`Nuevo mensaje de ${nuevoMensaje.autorNombre}: ${nuevoMensaje.texto}`);
+    };
+
+    const alRecibirEscribiendo = (datos: { usuarioId: number; nombre: string }) => {
+      if (datos.usuarioId === usuarioActualId) return;
+
+      const timerPrevio = temporizadoresEscribiendoRef.current.get(datos.usuarioId);
+      if (timerPrevio) clearTimeout(timerPrevio);
+
+      const nuevoTimer = setTimeout(() => {
+        temporizadoresEscribiendoRef.current.delete(datos.usuarioId);
+        setEscribiendoMap((prev) => {
+          if (!prev.has(datos.usuarioId)) return prev;
+          const nuevo = new Map(prev);
+          nuevo.delete(datos.usuarioId);
+          return nuevo;
+        });
+      }, 3000);
+
+      temporizadoresEscribiendoRef.current.set(datos.usuarioId, nuevoTimer);
+      setEscribiendoMap((prev) => {
+        const nuevo = new Map(prev);
+        nuevo.set(datos.usuarioId, datos.nombre);
+        return nuevo;
+      });
     };
 
     socket.on("connect", alConectar);
@@ -87,6 +133,7 @@ export function ChatCliente({ usuarioActualId }: Props) {
     socket.on("chat:conectados", alRecibirConectados);
     socket.on("chat:historial", alRecibirHistorial);
     socket.on("chat:mensaje", alRecibirMensaje);
+    socket.on("chat:escribiendo", alRecibirEscribiendo);
 
     // Pedir historial y lista de conectados al montar
     socket.emit(
@@ -115,8 +162,15 @@ export function ChatCliente({ usuarioActualId }: Props) {
       socket.off("chat:conectados", alRecibirConectados);
       socket.off("chat:historial", alRecibirHistorial);
       socket.off("chat:mensaje", alRecibirMensaje);
+      socket.off("chat:escribiendo", alRecibirEscribiendo);
+
+      // Limpiar todos los temporizadores de escribiendo
+      for (const t of temporizadores.values()) {
+        clearTimeout(t);
+      }
+      temporizadores.clear();
     };
-  }, []);
+  }, [usuarioActualId]);
 
   // Desplazamiento automático de la vista de mensajes sin mover el foco
   useEffect(() => {
@@ -152,12 +206,16 @@ export function ChatCliente({ usuarioActualId }: Props) {
         setEnviando(false);
         if (respuesta?.ok) {
           setTexto("");
+          ultimoEnvioEscribiendoRef.current = 0;
         } else if (respuesta?.error) {
           setErrores([respuesta.error]);
         }
       },
     );
   };
+
+  const nombresEscribiendo = Array.from(escribiendoMap.values());
+  const textoEscribiendo = formatearTextoEscribiendo(nombresEscribiendo);
 
   const textoEstado = {
     conectando: "○ Conectando al chat...",
@@ -236,6 +294,11 @@ export function ChatCliente({ usuarioActualId }: Props) {
             )}
           </div>
 
+          {/* Indicador accesible de personas escribiendo */}
+          <div role="status" aria-live="polite" className="chat-escribiendo">
+            {textoEscribiendo}
+          </div>
+
           {/* Formulario para escribir mensaje */}
           <form onSubmit={alEnviar} noValidate className="chat-formulario">
             <Campo
@@ -245,8 +308,17 @@ export function ChatCliente({ usuarioActualId }: Props) {
               errores={errores}
               value={texto}
               onChange={(e) => {
-                setTexto(e.target.value);
+                const nuevoTexto = e.target.value;
+                setTexto(nuevoTexto);
                 if (errores) setErrores(undefined);
+
+                // Throttle de 2 segundos para no superar límite de 20 eventos por 10 s
+                const ahora = Date.now();
+                if (nuevoTexto.trim() && ahora - ultimoEnvioEscribiendoRef.current >= 2000) {
+                  ultimoEnvioEscribiendoRef.current = ahora;
+                  const socket = obtenerSocket();
+                  socket.emit("chat:escribiendo");
+                }
               }}
               maxLength={1000}
               autoComplete="off"

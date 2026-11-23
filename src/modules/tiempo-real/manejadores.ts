@@ -14,6 +14,7 @@ import type { Server, Socket } from "socket.io";
 import { ErrorDominio } from "@/lib/errores";
 import type { UsuarioSesion } from "@/modules/autenticacion";
 import { conectados } from "./conectados";
+import { notificarEscribiendo } from "./escribiendo";
 import { enviarMensaje, obtenerHistorial } from "./servicio";
 
 export function registrarManejadores(io: Server, socket: Socket, usuario: UsuarioSesion): void {
@@ -74,5 +75,13 @@ export function registrarManejadores(io: Server, socket: Socket, usuario: Usuari
     const lista = conectados.listar();
     socket.emit("chat:conectados", lista);
     responder?.({ ok: true, conectados: lista });
+  });
+
+  /**
+   * Evento de usuario escribiendo:
+   * Reenvía a los demás con datos tomados de la sesión (nunca del cliente).
+   */
+  socket.on("chat:escribiendo", () => {
+    notificarEscribiendo(socket, usuario);
   });
 }
