@@ -3,13 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
-import { fechaHora, formatearHoraRelativa } from "@/lib/formato";
 import { obtenerSocket } from "@/lib/socket-cliente";
-import {
-  formatearTextoEscribiendo,
-  type MensajeGuardado,
-  type UsuarioConectado,
-} from "@/modules/tiempo-real";
+import { fechaHora, formatearHoraRelativa, formatearTextoEscribiendo } from "@/lib/formato";
+import type { MensajeGuardado, UsuarioConectado } from "@/modules/tiempo-real";
 import { esquemaTextoMensaje } from "@/modules/tiempo-real/validadores";
 
 interface Props {

@@ -135,3 +135,16 @@ export function formatearHoraRelativa(
   const diaMesStr = formatoDiaMes.format(dFecha);
   return `${diaMesStr} ${horaStr}`;
 }
+
+/**
+ * Texto visible y anunciado para lectores de pantalla de quién está escribiendo.
+ * - 1 persona: "Ana está escribiendo…"
+ * - 2 personas: "Ana y Luis están escribiendo…"
+ * - 3 o más: "Varias personas están escribiendo…"
+ */
+export function formatearTextoEscribiendo(nombres: string[]): string {
+  if (nombres.length === 0) return "";
+  if (nombres.length === 1) return `${nombres[0]} está escribiendo…`;
+  if (nombres.length === 2) return `${nombres[0]} y ${nombres[1]} están escribiendo…`;
+  return "Varias personas están escribiendo…";
+}
