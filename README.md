@@ -165,10 +165,11 @@ El análisis completo con el OWASP Top 10:2025 está en [docs/seguridad.md](docs
 - Avisos en tiempo real con `aria-live` (cortés para estados y chat, alerta para alergias) sin mover el foco.
 - Estados y alergias con texto y símbolo, nunca solo color; contraste de al menos 4,5:1.
 - Diseño adaptable desde 320 px sin desplazamiento horizontal; tablas que pasan a tarjetas en el celular; botones de 44 px.
+- **Login, nuevo pedido, cocina y chat** revisados manualmente con teclado y Narrador de Windows (ver detalle y hallazgos en [`docs/accesibilidad.md`](docs/accesibilidad.md)). Las fallas A-01 a A-04 y el bug "En línea (0)" están corregidos.
 
 **Pendiente:**
 
-- Recorrido completo con lector de pantalla (NVDA) y zoom al 200 % en todas las pantallas.
+- Repetir la revisión con NVDA (el lector más usado); la actual se hizo con el Narrador de Windows.
 - Aviso antes de que expire la sesión con opción de extenderla.
 
 ## Rendimiento
@@ -202,4 +203,4 @@ Cada integrante declara cómo usó herramientas de IA. Todo el código y los doc
 | Ricardo    | GitHub Copilot                  | Implementar el CRUD de productos, sus validaciones y la interfaz.                                                                                                                                                                                       |
 | Alejandro  | Codex (OpenAI)                  | Lectura del contexto, consulta de fuentes oficiales y redacción de la tabla OWASP de `docs/seguridad.md`.                                                                                                                                               |
 | Alejandro  | _por completar_                 | _Pantallas y servicio de autenticación (completar si se usó IA)._                                                                                                                                                                                       |
-| Roberth    | _por completar_                 | _Planteamiento y chat (completar si se usó IA)._                                                                                                                                                                                                        |
+| Roberth    | Antigravity (Google DeepMind)   | Implementación asistida del módulo de chat (validadores, repositorio, servicio), eventos Socket.IO (manejadores.ts), pantalla del chat (ChatCliente.tsx), contador de mensajes no leídos, indicador de usuarios escribiendo, hora relativa en Ecuador, avisos sonoros en cocina con Web Audio API, correcciones de accesibilidad A-01 a A-04 y pruebas unitarias de cada componente. Todo el código fue revisado, ajustado y commiteado manualmente. |
