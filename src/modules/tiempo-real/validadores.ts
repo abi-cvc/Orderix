@@ -5,7 +5,7 @@
  * mismos esquemas para validar antes de enviar, y el servicio los vuelve a usar
  * en el servidor. No importa nada específico del servidor ni base de datos.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const SALA_GENERAL = "general";
 export const LONGITUD_MAXIMA_TEXTO = 1000;
