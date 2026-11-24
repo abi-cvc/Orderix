@@ -31,7 +31,9 @@ export function ChatCliente({ usuarioActualId }: Props) {
   const [anuncioNuevo, setAnuncioNuevo] = useState<string>();
   const [escribiendoMap, setEscribiendoMap] = useState<Map<number, string>>(new Map());
   const contenedorMensajesRef = useRef<HTMLDivElement>(null);
-  const temporizadoresEscribiendoRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+  const temporizadoresEscribiendoRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
   const ultimoEnvioEscribiendoRef = useRef<number>(0);
 
   useEffect(() => {
@@ -221,12 +223,7 @@ export function ChatCliente({ usuarioActualId }: Props) {
   return (
     <div className="chat-layout">
       {/* Región viva cortés solo para anuncios de mensajes nuevos (sin re-anunciar cambios) */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        aria-relevant="additions"
-        className="solo-lector"
-      >
+      <div aria-live="polite" aria-atomic="true" aria-relevant="additions" className="solo-lector">
         {anuncioNuevo}
       </div>
 

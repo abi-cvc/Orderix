@@ -24,5 +24,3 @@ export function notificarEscribiendo(
   emisor.broadcast.emit("chat:escribiendo", datos);
   return datos;
 }
-
-

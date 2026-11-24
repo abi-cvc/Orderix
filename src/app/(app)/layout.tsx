@@ -47,7 +47,8 @@ export default async function LayoutAplicacion({ children }: { children: ReactNo
             <div className="pie__interior">
               <p>
                 <strong>¿Necesitas ayuda?</strong> Escribe en el{" "}
-                <Link href="/chat">chat general</Link> o pide apoyo al administrador del restaurante.
+                <Link href="/chat">chat general</Link> o pide apoyo al administrador del
+                restaurante.
               </p>
             </div>
           </footer>

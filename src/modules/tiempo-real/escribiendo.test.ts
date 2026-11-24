@@ -3,10 +3,7 @@ import { test } from "node:test";
 import { Rol } from "@/generated/prisma/enums";
 import type { UsuarioSesion } from "@/modules/autenticacion";
 import { formatearTextoEscribiendo } from "@/lib/formato";
-import {
-  notificarEscribiendo,
-  type EmisorEscribiendo,
-} from "./escribiendo";
+import { notificarEscribiendo, type EmisorEscribiendo } from "./escribiendo";
 
 test("el evento llega a los demás de la sala mediante broadcast y NO al emisor", () => {
   const eventosEmitidos: { evento: string; datos: unknown }[] = [];
@@ -55,7 +52,10 @@ test("formatearTextoEscribiendo formatea correctamente 0, 1, 2 y 3 o más person
   assert.equal(formatearTextoEscribiendo([]), "");
   assert.equal(formatearTextoEscribiendo(["Ana"]), "Ana está escribiendo…");
   assert.equal(formatearTextoEscribiendo(["Ana", "Luis"]), "Ana y Luis están escribiendo…");
-  assert.equal(formatearTextoEscribiendo(["Ana", "Luis", "Carlos"]), "Varias personas están escribiendo…");
+  assert.equal(
+    formatearTextoEscribiendo(["Ana", "Luis", "Carlos"]),
+    "Varias personas están escribiendo…",
+  );
   assert.equal(
     formatearTextoEscribiendo(["Ana", "Luis", "Carlos", "Sofía"]),
     "Varias personas están escribiendo…",

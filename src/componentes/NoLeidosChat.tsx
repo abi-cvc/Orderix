@@ -55,9 +55,7 @@ export function ProveedorNoLeidos({ usuarioActualId, children }: Props) {
     const socket = obtenerSocket();
 
     const alRecibirMensaje = (mensaje: MensajeGuardado) => {
-      setNoLeidos((actual) =>
-        calcularNoLeidosAlRecibir(actual, mensaje, usuarioActualId, ruta),
-      );
+      setNoLeidos((actual) => calcularNoLeidosAlRecibir(actual, mensaje, usuarioActualId, ruta));
     };
 
     socket.on("chat:mensaje", alRecibirMensaje);
