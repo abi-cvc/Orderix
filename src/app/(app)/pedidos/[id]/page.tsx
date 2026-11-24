@@ -11,6 +11,8 @@ import { fechaHora, hora, moneda, subtotal } from "@/lib/formato";
 import { ETIQUETA_ESTADO } from "@/lib/navegacion";
 import { usuarioDePagina } from "@/lib/pagina";
 import { tokenCsrf } from "@/modules/autenticacion";
+import { obtenerCalificacion } from "@/modules/calificaciones";
+import { ETIQUETAS_PUNTAJE } from "@/modules/calificaciones/validadores";
 import { listarProductosDisponibles } from "@/modules/menu";
 import { obtenerPedido } from "@/modules/pedidos";
 import { ESTADOS_QUITAR_ITEMS } from "@/modules/pedidos/estados";
@@ -41,6 +43,10 @@ export default async function DetallePedidoPage({ params, searchParams }: Props)
   const { id } = await params;
   const { creado } = await searchParams;
   const { pedido, historial, estadosPermitidos, puedeEditarItems } = await cargar(usuario, id);
+  const calificacion =
+    usuario.rol === Rol.CAJERO && pedido.estado === "COBRADO"
+      ? await obtenerCalificacion(pedido.id)
+      : null;
   const csrf = await tokenCsrf();
   const productos = puedeEditarItems ? await listarProductosDisponibles() : [];
   const puedeQuitar = puedeEditarItems && ESTADOS_QUITAR_ITEMS.includes(pedido.estado);
@@ -99,6 +105,21 @@ export default async function DetallePedidoPage({ params, searchParams }: Props)
           </div>
         )}
       </dl>
+
+      {usuario.rol === Rol.CAJERO && pedido.estado === "COBRADO" && (
+        <section className="calificacion-detalle" aria-labelledby="titulo-calificacion">
+          <h2 id="titulo-calificacion">Calificación del servicio</h2>
+          {calificacion ? (
+            <p role="status">
+              {calificacion.puntaje}/5 · {ETIQUETAS_PUNTAJE[calificacion.puntaje]}
+            </p>
+          ) : (
+            <Link className="boton boton--primario" href={`/calificar/${pedido.id}`}>
+              Calificar servicio
+            </Link>
+          )}
+        </section>
+      )}
 
       {estadosPermitidos.length > 0 && (
         <section className="seccion" aria-labelledby="titulo-acciones">
