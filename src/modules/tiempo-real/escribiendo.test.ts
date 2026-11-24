@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Rol } from "@/generated/prisma/enums";
 import type { UsuarioSesion } from "@/modules/autenticacion";
+import { formatearTextoEscribiendo } from "@/lib/formato";
 import {
-  formatearTextoEscribiendo,
   notificarEscribiendo,
   type EmisorEscribiendo,
 } from "./escribiendo";
