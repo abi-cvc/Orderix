@@ -22,8 +22,12 @@ export default async function CalificarPedidoPage({
   const pedido = await obtenerEstadoPedido(pedidoId);
   if (!pedido) notFound();
   if (pedido.estado !== EstadoPedido.COBRADO) redirect(`/pedidos/${pedidoId}`);
-  if (await obtenerCalificacion(pedidoId)) redirect(`/pedidos/${pedidoId}`);
+  // Ya calificado: muestra el agradecimiento en vez de redirigir. Tras enviar,
+  // Next vuelve a pintar esta ruta y un redirect taparía el "¡Gracias!".
+  const calificada = Boolean(await obtenerCalificacion(pedidoId));
 
   const accion = registrarCalificacionAccion.bind(null, pedidoId);
-  return <FormularioCalificacion accion={accion} csrf={await tokenCsrf()} />;
+  return (
+    <FormularioCalificacion accion={accion} csrf={await tokenCsrf()} calificada={calificada} />
+  );
 }

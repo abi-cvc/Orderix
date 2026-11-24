@@ -4,7 +4,12 @@ import { EstadoPedido, Rol } from "@/generated/prisma/enums";
 import { ErrorConflicto, ErrorProhibido, ErrorValidacion } from "@/lib/errores";
 import type { UsuarioSesion } from "@/modules/autenticacion";
 import type { CalificacionGuardada } from "./repositorio";
-import { calificarPedido, obtenerCalificacion, type DependenciasCalificaciones } from "./servicio";
+import {
+  calificacionesDePedidos,
+  calificarPedido,
+  obtenerCalificacion,
+  type DependenciasCalificaciones,
+} from "./servicio";
 
 const cajero: UsuarioSesion = { id: 7, nombre: "Sofía", rol: Rol.CAJERO };
 const mesero: UsuarioSesion = { id: 2, nombre: "Lucía", rol: Rol.MESERO };
@@ -104,4 +109,21 @@ test("obtenerCalificacion distingue entre un pedido sin calificar y uno califica
 
   await calificarPedido(cajero, { pedidoId, puntaje: 4 }, entorno.deps);
   assert.equal((await obtenerCalificacion(pedidoId, entorno.deps))?.puntaje, 4);
+});
+
+test("calificacionesDePedidos no consulta con una lista vacía y no repite ids", async () => {
+  const consultas: number[][] = [];
+  const deps = {
+    async listarPorPedidos(ids: number[]) {
+      consultas.push(ids);
+      return ids.map((id) => ({ id, pedidoId: id, puntaje: 4, fecha: new Date(0) }));
+    },
+  };
+
+  assert.deepEqual(await calificacionesDePedidos([], deps), []);
+  assert.equal(consultas.length, 0);
+
+  const resultado = await calificacionesDePedidos([3, 3, 8, -1], deps);
+  assert.deepEqual(consultas, [[3, 8]]);
+  assert.equal(resultado.length, 2);
 });

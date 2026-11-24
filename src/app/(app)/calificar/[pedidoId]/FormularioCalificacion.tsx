@@ -18,9 +18,12 @@ const CARITAS = ["😣", "🙁", "😐", "🙂", "😄"];
 export function FormularioCalificacion({
   accion,
   csrf,
+  calificada,
 }: {
   accion: AccionCalificar;
   csrf: string;
+  /** El pedido ya tiene calificación (recién enviada o de antes). */
+  calificada: boolean;
 }) {
   const [estado, enviar, enviando] = useActionState<EstadoFormulario, FormData>(accion, {});
   const [seleccion, setSeleccion] = useState<number | null>(null);
@@ -32,7 +35,7 @@ export function FormularioCalificacion({
     if (estado.exito) tituloGracias.current?.focus();
   }, [estado.exito]);
 
-  if (estado.exito) {
+  if (estado.exito || calificada) {
     return (
       <section className="calificacion-pantalla" aria-labelledby="calificacion-gracias">
         <div className="calificacion-panel calificacion-panel--gracias">
