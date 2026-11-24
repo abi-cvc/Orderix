@@ -97,16 +97,16 @@ Usuarios de la semilla local (clave `orderix-demo-2026`, solo para desarrollo): 
 
 Para levantar todo con Docker (aplicación + base): `docker build -t orderix-app:local .` y luego `docker compose up`.
 
-| Comando                      | Qué hace                                                   |
-| ---------------------------- | ---------------------------------------------------------- |
-| `npm run dev`                | Servidor de desarrollo con recarga                         |
-| `npm run build && npm start` | Compila y arranca en modo producción                       |
-| `npm run lint`               | ESLint (incluye accesibilidad y reglas de módulos)         |
-| `npm run typecheck`          | Revisión de tipos                                          |
-| `npm test`                   | Pruebas unitarias de servicios, validaciones y seguridad   |
-| `npm run test:e2e`           | Pruebas con navegador: axe, teclado y 320 px (requiere BD) |
-| `npm run db:seed:volumen`    | 10.000 pedidos ficticios para medir rendimiento            |
-| `npm run db:seed:sql`        | Genera la semilla como SQL (para el editor de Neon)        |
+| Comando                      | Qué hace                                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`                | Servidor de desarrollo con recarga                                                                  |
+| `npm run build && npm start` | Compila y arranca en modo producción                                                                |
+| `npm run lint`               | ESLint (incluye accesibilidad y reglas de módulos)                                                  |
+| `npm run typecheck`          | Revisión de tipos                                                                                   |
+| `npm test`                   | Pruebas unitarias de servicios, validaciones y seguridad                                            |
+| `npm run test:e2e`           | Pruebas con navegador: axe, teclado y 320 px (requiere BD)                                          |
+| `npm run db:seed:volumen`    | 10.000 pedidos ficticios con historial y calificaciones, para medir rendimiento y probar el reporte |
+| `npm run db:seed:sql`        | Genera la semilla como SQL (para el editor de Neon)                                                 |
 
 ### Variables de entorno
 
