@@ -2,6 +2,11 @@
  * Semilla de volumen: ~10.000 pedidos ficticios con sus ítems, repartidos en los
  * últimos 90 días, para medir el rendimiento del listado con y sin índices.
  *
+ * Cada pedido trae su historial de estados con horas creíbles (cocina, entrega,
+ * cobro) y parte de los cobrados, su calificación, para que el reporte por
+ * mesero tenga tiempos y puntajes. Cada mesero tiene su propio ritmo y nivel,
+ * así el reporte muestra diferencias entre ellos.
+ *
  * Requiere haber corrido antes la semilla base (usuarios y productos).
  * Uso: npm run db:seed:volumen            (10.000 pedidos)
  *      npm run db:seed:volumen -- 2000    (otra cantidad)
@@ -26,8 +31,88 @@ const ESTADOS: [EstadoPedido, number][] = [
 
 const ALERGIAS = ["maní", "mariscos", "lactosa", "gluten"];
 
+const MINUTO = 60 * 1000;
+// Parte de los pedidos cobrados que el cliente califica.
+const PROPORCION_CALIFICADOS = 0.65;
+
+// Orden del flujo normal; el estado final decide hasta dónde llega cada pedido.
+const FLUJO: EstadoPedido[] = [
+  EstadoPedido.CREADO,
+  EstadoPedido.EN_PREPARACION,
+  EstadoPedido.LISTO,
+  EstadoPedido.ENTREGADO,
+  EstadoPedido.COBRADO,
+];
+
+/** Ritmo y nivel de cada mesero: multiplica sus tiempos de entrega y sesga su puntaje. */
+interface PerfilMesero {
+  id: number;
+  nombre: string;
+  ritmo: number;
+  nivel: number;
+}
+
+interface Cambio {
+  estado: EstadoPedido;
+  usuarioId: number;
+  fecha: Date;
+}
+
 function azar<T>(lista: readonly T[]): T {
   return lista[Math.floor(Math.random() * lista.length)]!;
+}
+
+/** Minutos al azar entre min y max (uniforme), en milisegundos. */
+function minutos(min: number, max: number): number {
+  return (min + Math.random() * (max - min)) * MINUTO;
+}
+
+/** Puntaje de 1 a 5 alrededor del nivel del mesero. */
+function puntajeAlAzar(nivel: number): number {
+  const valor = nivel + (Math.random() + Math.random() - 1) * 1.6;
+  return Math.min(5, Math.max(1, Math.round(valor)));
+}
+
+/**
+ * Historial de un pedido hasta su estado final, con quién hizo cada cambio:
+ * cocina prepara, el mesero entrega y la caja cobra. Un pedido cancelado se
+ * cancela antes de prepararse (mesero) o ya entregado, antes de cobrar (caja).
+ */
+function historial(
+  estadoFinal: EstadoPedido,
+  creadoEn: Date,
+  mesero: PerfilMesero,
+  cocineroId: number,
+  cajeroId: number,
+): Cambio[] {
+  let t = creadoEn.getTime();
+  const cambios: Cambio[] = [
+    { estado: EstadoPedido.CREADO, usuarioId: mesero.id, fecha: creadoEn },
+  ];
+  const pasos: [EstadoPedido, number, number][] = [
+    [EstadoPedido.EN_PREPARACION, cocineroId, minutos(0.5, 5)],
+    [EstadoPedido.LISTO, cocineroId, minutos(4, 22)],
+    [EstadoPedido.ENTREGADO, mesero.id, minutos(1, 6) * mesero.ritmo],
+    [EstadoPedido.COBRADO, cajeroId, minutos(8, 40)],
+  ];
+
+  const cancelado = estadoFinal === EstadoPedido.CANCELADO;
+  const temprano = Math.random() < 0.6;
+  // Cuántos pasos del flujo normal recorre antes de su estado final.
+  const recorridos = cancelado ? (temprano ? 0 : 3) : FLUJO.indexOf(estadoFinal);
+  for (const [estado, usuarioId, espera] of pasos.slice(0, recorridos)) {
+    t += espera;
+    cambios.push({ estado, usuarioId, fecha: new Date(t) });
+  }
+  if (cancelado) {
+    t += minutos(1, 10);
+    cambios.push({
+      estado: EstadoPedido.CANCELADO,
+      usuarioId: temprano ? mesero.id : cajeroId,
+      fecha: new Date(t),
+    });
+  }
+  return cambios;
 }
 
 function estadoAlAzar(): EstadoPedido {
@@ -48,14 +133,35 @@ async function main(): Promise<void> {
 
   const prisma = crearClienteScript();
   try {
-    const meseros = await prisma.usuario.findMany({
-      where: { rol: Rol.MESERO },
-      select: { id: true, nombre: true },
+    const meseros: PerfilMesero[] = (
+      await prisma.usuario.findMany({
+        where: { rol: Rol.MESERO },
+        select: { id: true, nombre: true },
+        orderBy: { id: "asc" },
+      })
+    ).map((mesero, i) => ({
+      ...mesero,
+      // Fijos por posición: el reporte sale parecido cada vez que se corre.
+      ritmo: [0.8, 1.35, 1, 1.15][i % 4]!,
+      nivel: [4.6, 3.7, 4.2, 3.9][i % 4]!,
+    }));
+    const cocineros = await prisma.usuario.findMany({
+      where: { rol: Rol.COCINA },
+      select: { id: true },
+    });
+    const cajeros = await prisma.usuario.findMany({
+      where: { rol: Rol.CAJERO },
+      select: { id: true },
     });
     const productos = await prisma.producto.findMany({
       select: { id: true, nombre: true, precio: true },
     });
-    if (meseros.length === 0 || productos.length === 0) {
+    if (
+      meseros.length === 0 ||
+      cocineros.length === 0 ||
+      cajeros.length === 0 ||
+      productos.length === 0
+    ) {
       throw new Error("Primero corre la semilla base: npm run db:seed");
     }
 
@@ -79,27 +185,45 @@ async function main(): Promise<void> {
         }),
       );
 
-      const pedidos = await prisma.pedido.createManyAndReturn({
-        select: { id: true, creadoEn: true },
-        data: itemsPorPedido.map((items) => {
-          const mesero = azar(meseros);
-          const estado = estadoAlAzar();
-          const creadoEn = new Date(ahora - Math.random() * DIAS * 24 * 60 * 60 * 1000);
-          const total = items.reduce(
-            (suma, item) => suma.add(item.precioUnitario.mul(item.cantidad)),
-            new Prisma.Decimal(0),
-          );
-          const cerrado = estado === EstadoPedido.COBRADO || estado === EstadoPedido.CANCELADO;
-          return {
+      // Cada pedido con su historial y su calificación, calculados antes de insertar.
+      const borradores = itemsPorPedido.map((items) => {
+        const mesero = azar(meseros);
+        const estado = estadoAlAzar();
+        // Al menos 2 horas atrás, para que todo el historial quede en el pasado.
+        const creadoEn = new Date(ahora - 120 * MINUTO - Math.random() * DIAS * 24 * 60 * MINUTO);
+        const cambios = historial(estado, creadoEn, mesero, azar(cocineros).id, azar(cajeros).id);
+        const ultimo = cambios.at(-1)!;
+        const total = items.reduce(
+          (suma, item) => suma.add(item.precioUnitario.mul(item.cantidad)),
+          new Prisma.Decimal(0),
+        );
+        const cerrado = estado === EstadoPedido.COBRADO || estado === EstadoPedido.CANCELADO;
+        const calificacion =
+          estado === EstadoPedido.COBRADO && Math.random() < PROPORCION_CALIFICADOS
+            ? {
+                puntaje: puntajeAlAzar(mesero.nivel),
+                cajeroId: ultimo.usuarioId,
+                fecha: new Date(ultimo.fecha.getTime() + minutos(0.2, 2)),
+              }
+            : null;
+        return {
+          cambios,
+          calificacion,
+          pedido: {
             numeroMesa: 1 + Math.floor(Math.random() * MESAS),
             meseroId: mesero.id,
             meseroNombre: mesero.nombre,
             estado,
             total,
             creadoEn,
-            cerradoEn: cerrado ? new Date(creadoEn.getTime() + 45 * 60 * 1000) : null,
-          };
-        }),
+            cerradoEn: cerrado ? ultimo.fecha : null,
+          },
+        };
+      });
+
+      const pedidos = await prisma.pedido.createManyAndReturn({
+        select: { id: true, creadoEn: true },
+        data: borradores.map((borrador) => borrador.pedido),
       });
 
       await prisma.itemPedido.createMany({
@@ -110,6 +234,19 @@ async function main(): Promise<void> {
             agregadoEn: pedido.creadoEn,
           })),
         ),
+      });
+
+      await prisma.cambioEstado.createMany({
+        data: pedidos.flatMap((pedido, i) =>
+          borradores[i]!.cambios.map((cambio) => ({ ...cambio, pedidoId: pedido.id })),
+        ),
+      });
+
+      await prisma.calificacion.createMany({
+        data: pedidos.flatMap((pedido, i) => {
+          const calificacion = borradores[i]!.calificacion;
+          return calificacion ? [{ ...calificacion, pedidoId: pedido.id }] : [];
+        }),
       });
 
       console.log(`  ${hechos + tamano} / ${CANTIDAD} pedidos`);
