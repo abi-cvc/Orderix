@@ -94,7 +94,7 @@ test("mesero, cocina y caja completan un pedido con alergia, con avisos en tiemp
   const dimensiones = await caja.locator(".calificacion-cara").first().boundingBox();
   expect(dimensiones?.width).toBeGreaterThanOrEqual(72);
   expect(dimensiones?.height).toBeGreaterThanOrEqual(72);
-  await opciones.nth(4).check();
+  await caja.getByText("Excelente", { exact: true }).click();
   await caja.getByRole("button", { name: "Enviar" }).click();
   await expect(caja.getByRole("heading", { name: "¡Gracias!" })).toBeVisible();
   await caja.getByRole("link", { name: "Volver a Caja" }).click();
