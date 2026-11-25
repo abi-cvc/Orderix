@@ -6,7 +6,10 @@
  * nunca confía en que el botón estuviera oculto).
  *
  *   CREADO → EN_PREPARACION → LISTO → ENTREGADO → COBRADO
- *      └──────────────┴──────────┴────────┴──→ CANCELADO
+ *      └──→ CANCELADO
+ *
+ * Solo se cancela antes de que cocina empiece: después ya se gastaron
+ * ingredientes y trabajo, así que el pedido sigue hasta cobrarse.
  */
 import { EstadoPedido, Rol } from "@/generated/prisma/enums";
 
@@ -22,22 +25,13 @@ const { CREADO, EN_PREPARACION, LISTO, ENTREGADO, COBRADO, CANCELADO } = EstadoP
 const TRANSICIONES: Record<EstadoPedido, readonly Transicion[]> = {
   [CREADO]: [
     { a: EN_PREPARACION, roles: [Rol.COCINA] },
-    // El mesero puede cancelar solo antes de que cocina empiece.
+    // Mesero dueño y caja cancelan solo antes de que cocina empiece.
     { a: CANCELADO, roles: [Rol.MESERO], soloDueno: true },
     { a: CANCELADO, roles: [Rol.CAJERO] },
   ],
-  [EN_PREPARACION]: [
-    { a: LISTO, roles: [Rol.COCINA] },
-    { a: CANCELADO, roles: [Rol.CAJERO] },
-  ],
-  [LISTO]: [
-    { a: ENTREGADO, roles: [Rol.MESERO], soloDueno: true },
-    { a: CANCELADO, roles: [Rol.CAJERO] },
-  ],
-  [ENTREGADO]: [
-    { a: COBRADO, roles: [Rol.CAJERO] },
-    { a: CANCELADO, roles: [Rol.CAJERO] },
-  ],
+  [EN_PREPARACION]: [{ a: LISTO, roles: [Rol.COCINA] }],
+  [LISTO]: [{ a: ENTREGADO, roles: [Rol.MESERO], soloDueno: true }],
+  [ENTREGADO]: [{ a: COBRADO, roles: [Rol.CAJERO] }],
   [COBRADO]: [],
   [CANCELADO]: [],
 };
