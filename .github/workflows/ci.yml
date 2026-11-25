@@ -34,7 +34,7 @@ jobs:
       - name: Secreto de sesión aleatorio (solo para esta ejecución)
         run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -75,7 +75,7 @@ jobs:
       - name: Secreto de sesión aleatorio (solo para esta ejecución)
         run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -106,7 +106,7 @@ jobs:
         with:
           # Historial completo: el escaneo revisa todos los commits, no solo el último.
           fetch-depth: 0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: npm audit (vulnerabilidades altas o críticas)
