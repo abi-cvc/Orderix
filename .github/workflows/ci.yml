@@ -33,8 +33,8 @@ jobs:
     steps:
       - name: Secreto de sesión aleatorio (solo para esta ejecución)
         run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -74,8 +74,8 @@ jobs:
     steps:
       - name: Secreto de sesión aleatorio (solo para esta ejecución)
         run: echo "SESSION_SECRET=$(openssl rand -base64 48)" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -89,7 +89,7 @@ jobs:
         run: npm run test:e2e
       - name: Reporte de Playwright (si falla)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reporte-playwright
           path: |
@@ -102,11 +102,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # Historial completo: el escaneo revisa todos los commits, no solo el último.
           fetch-depth: 0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: npm audit (vulnerabilidades altas o críticas)

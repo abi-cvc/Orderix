@@ -1,14 +1,15 @@
 # Módulos de Orderix
 
-Toda la lógica de negocio vive aquí, en cinco módulos. Cada uno es dueño de sus tablas y en el segundo bimestre se convierte en un microservicio (o en parte de uno).
+Toda la lógica de negocio vive aquí, en módulos. Los módulos de dominio son dueños de sus tablas; `reportes` compone contratos públicos de otros módulos y no accede directamente a tablas.
 
-| Módulo           | Frente        | Tablas propias                                |
-| ---------------- | ------------- | --------------------------------------------- |
-| `autenticacion`  | A, Alejandro  | `usuarios`, `sesiones`, `tokens_recuperacion` |
-| `menu`           | B, Ricardo    | `productos`                                   |
-| `pedidos`        | C, Carol      | `pedidos`, `items_pedido`, `cambios_estado`   |
-| `tiempo-real`    | D, Roberth    | `salas`, `mensajes`                           |
-| `calificaciones` | ejemplo (y B) | `calificaciones`                              |
+| Módulo           | Frente        | Tablas propias                                  |
+| ---------------- | ------------- | ----------------------------------------------- |
+| `autenticacion`  | A, Alejandro  | `usuarios`, `sesiones`, `tokens_recuperacion`   |
+| `menu`           | B, Ricardo    | `productos`                                     |
+| `pedidos`        | C, Carol      | `pedidos`, `items_pedido`, `cambios_estado`     |
+| `tiempo-real`    | D, Roberth    | `salas`, `mensajes`                             |
+| `calificaciones` | ejemplo (y B) | `calificaciones`                                |
+| `reportes`       | B             | ninguna (consulta `pedidos` y `calificaciones`) |
 
 **`calificaciones` es el módulo de ejemplo.** Antes de escribir el tuyo, léelo completo: tiene el patrón que seguimos todos.
 
@@ -61,18 +62,20 @@ export async function hacerAlgo(usuario: UsuarioSesion, entrada: unknown) {
 
 Están en el esqueleto y cambian solo con un PR pequeño que revisamos los cuatro.
 
-| Contrato                                | Módulo          | Para qué                                                                   |
-| --------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| `UsuarioSesion` (`id`, `nombre`, `rol`) | `autenticacion` | El usuario que reciben todos los servicios                                 |
-| `requireRole(...roles)`                 | `autenticacion` | Proteger páginas y acciones. Lanza `ErrorNoAutenticado` o `ErrorProhibido` |
-| `obtenerUsuarioSesion()`                | `autenticacion` | El usuario actual o `null` (por ejemplo, para el menú de navegación)       |
-| `iniciarSesion(usuarioId)`              | `autenticacion` | Crear la sesión después de verificar la clave (login)                      |
-| `cerrarSesion()`                        | `autenticacion` | Cerrar la sesión actual (logout)                                           |
-| `cerrarTodasLasSesiones(usuarioId)`     | `autenticacion` | Al restablecer la clave o desactivar un usuario                            |
-| `tokenCsrf()` y `CAMPO_CSRF`            | `autenticacion` | Campo oculto de los formularios que cambian datos                          |
-| `protegerFormulario(formData)`          | `autenticacion` | Primera línea de toda acción que cambia datos (origen + CSRF)              |
-| `publicarEvento(tipo, datos)`           | `tiempo-real`   | Enviar avisos en tiempo real. Tipos en `tiempo-real/eventos.ts`            |
-| `obtenerEstadoPedido(id)`               | `pedidos`       | Estado actual de un pedido (lo usa `calificaciones`)                       |
+| Contrato                                | Módulo           | Para qué                                                                   |
+| --------------------------------------- | ---------------- | -------------------------------------------------------------------------- |
+| `UsuarioSesion` (`id`, `nombre`, `rol`) | `autenticacion`  | El usuario que reciben todos los servicios                                 |
+| `requireRole(...roles)`                 | `autenticacion`  | Proteger páginas y acciones. Lanza `ErrorNoAutenticado` o `ErrorProhibido` |
+| `obtenerUsuarioSesion()`                | `autenticacion`  | El usuario actual o `null` (por ejemplo, para el menú de navegación)       |
+| `iniciarSesion(usuarioId)`              | `autenticacion`  | Crear la sesión después de verificar la clave (login)                      |
+| `cerrarSesion()`                        | `autenticacion`  | Cerrar la sesión actual (logout)                                           |
+| `cerrarTodasLasSesiones(usuarioId)`     | `autenticacion`  | Al restablecer la clave o desactivar un usuario                            |
+| `tokenCsrf()` y `CAMPO_CSRF`            | `autenticacion`  | Campo oculto de los formularios que cambian datos                          |
+| `protegerFormulario(formData)`          | `autenticacion`  | Primera línea de toda acción que cambia datos (origen + CSRF)              |
+| `publicarEvento(tipo, datos)`           | `tiempo-real`    | Enviar avisos en tiempo real. Tipos en `tiempo-real/eventos.ts`            |
+| `obtenerEstadoPedido(id)`               | `pedidos`        | Estado actual de un pedido (lo usa `calificaciones`)                       |
+| `resumenDeServicio(filtro)`             | `pedidos`        | Pedidos e historial de estados para el reporte por mesero                  |
+| `calificacionesDePedidos(ids)`          | `calificaciones` | Calificaciones agrupadas para el reporte por mesero                        |
 
 Eventos que publica `pedidos`:
 
