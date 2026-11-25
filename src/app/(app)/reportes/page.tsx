@@ -69,7 +69,9 @@ export default async function ReportesPage({
     filas = reporte.filas;
   } catch (causa) {
     const estado = estadoDeError(causa);
-    error = estado.mensaje;
+    // Muestra el motivo concreto (fecha inválida, rango invertido o muy largo).
+    const motivos = [...(estado.errores?.desde ?? []), ...(estado.errores?.hasta ?? [])];
+    error = motivos.length > 0 ? motivos.join(" ") : estado.mensaje;
   }
 
   const periodo =

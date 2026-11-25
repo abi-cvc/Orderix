@@ -339,3 +339,25 @@ test("procesa diez mil pedidos consultando las calificaciones en un solo lote", 
   assert.equal(entorno.idsConsultados.length, 1);
   assert.equal(entorno.idsConsultados[0]?.length, 10_000);
 });
+
+test("rechaza períodos de más de un año sin consultar la base", async () => {
+  const entorno = crearEntorno([]);
+
+  await assert.rejects(
+    obtenerReporteMeseros(
+      administrador,
+      { desde: "2000-01-01", hasta: "2099-12-31" },
+      entorno.deps,
+    ),
+    ErrorValidacion,
+  );
+  assert.equal(entorno.filtros.length, 0);
+
+  // Un año completo (bisiesto incluido) sí se acepta.
+  await obtenerReporteMeseros(
+    administrador,
+    { desde: "2028-01-01", hasta: "2028-12-31" },
+    entorno.deps,
+  );
+  assert.equal(entorno.filtros.length, 1);
+});
