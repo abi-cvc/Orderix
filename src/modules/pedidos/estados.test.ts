@@ -24,9 +24,11 @@ test("solo el mesero dueño entrega, y solo cancela antes de que cocina empiece"
   assert.deepEqual(estadosPermitidos(pedido("CREADO"), otroMesero), []);
 });
 
-test("caja cobra solo lo entregado y cancela mientras no esté cerrado", () => {
-  assert.deepEqual(estadosPermitidos(pedido("ENTREGADO"), cajero), ["COBRADO", "CANCELADO"]);
-  assert.deepEqual(estadosPermitidos(pedido("LISTO"), cajero), ["CANCELADO"]);
+test("caja cobra solo lo entregado y cancela solo antes de que cocina empiece", () => {
+  assert.deepEqual(estadosPermitidos(pedido("CREADO"), cajero), ["CANCELADO"]);
+  assert.deepEqual(estadosPermitidos(pedido("EN_PREPARACION"), cajero), []);
+  assert.deepEqual(estadosPermitidos(pedido("LISTO"), cajero), []);
+  assert.deepEqual(estadosPermitidos(pedido("ENTREGADO"), cajero), ["COBRADO"]);
   assert.deepEqual(estadosPermitidos(pedido("COBRADO"), cajero), []);
   assert.deepEqual(estadosPermitidos(pedido("CANCELADO"), cajero), []);
 });
