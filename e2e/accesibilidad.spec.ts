@@ -26,6 +26,7 @@ const PANTALLAS = [
   { ruta: "/ejemplo", nombre: "componentes de ejemplo" },
   { ruta: "/pedidos", nombre: "listado de pedidos" },
   { ruta: "/pedidos/nuevo", nombre: "nuevo pedido" },
+  { ruta: "/reportes", nombre: "reporte de meseros" },
   { ruta: "/chat", nombre: "chat general" },
 ];
 
@@ -164,7 +165,7 @@ test("adaptable: a 320 px no hay desplazamiento horizontal y el menú se pliega"
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 800 });
-  for (const ruta of ["/pedidos", "/pedidos/nuevo", "/ejemplo"]) {
+  for (const ruta of ["/pedidos", "/pedidos/nuevo", "/reportes", "/ejemplo"]) {
     await page.goto(ruta);
     const ancho = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(ancho, `scroll horizontal en ${ruta}`).toBeLessThanOrEqual(320);
