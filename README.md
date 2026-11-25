@@ -35,7 +35,7 @@ CREADO → EN PREPARACIÓN → LISTO → ENTREGADO → COBRADO
 3. El mesero lo entrega. El cajero lo cobra (con confirmación del total) y queda cerrado.
 4. Si se agrega o cambia una alergia con el pedido ya enviado, cocina recibe una alerta.
 
-El mesero puede cancelar solo antes de que cocina empiece; el cajero, mientras no esté cobrado. "Eliminar" un pedido es cancelarlo: el registro y su historial se conservan.
+El mesero dueño y el cajero pueden cancelar solo antes de que cocina empiece: después ya se gastaron ingredientes y trabajo. "Eliminar" un pedido es cancelarlo: el registro y su historial se conservan.
 
 ## Funcionalidades
 
