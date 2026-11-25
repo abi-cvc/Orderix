@@ -12,3 +12,4 @@ export { publicarEvento, registrarServidorSocket } from "./publicador";
 export { enviarMensaje, obtenerHistorial } from "./servicio";
 export type { MensajeGuardado, SalaGuardada } from "./repositorio";
 export { conectados, crearAlmacenConectados, type UsuarioConectado } from "./conectados";
+export { notificarEscribiendo } from "./escribiendo";

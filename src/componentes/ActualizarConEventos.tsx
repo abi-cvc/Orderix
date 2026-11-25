@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ETIQUETA_ESTADO } from "@/lib/navegacion";
 import { obtenerSocket } from "@/lib/socket-cliente";
+import { estaSonidoCocinaActivado, programarAvisoSonoro } from "@/lib/sonido";
 import type { EventosTiempoReal, TipoEvento } from "@/modules/tiempo-real/eventos";
 import { Anuncio } from "./Anuncio";
 
@@ -12,6 +13,8 @@ interface Props {
   eventos: TipoEvento[];
   /** Id del usuario actual: para avisar "tu pedido está listo" al mesero. */
   usuarioId?: number;
+  /** Activa los avisos sonoros (usado en cocina). */
+  sonido?: boolean;
 }
 
 /**
@@ -19,7 +22,7 @@ interface Props {
  * (router.refresh) y anuncia el cambio sin mover el foco. Una alergia nueva
  * se anuncia como alerta.
  */
-export function ActualizarConEventos({ eventos, usuarioId }: Props) {
+export function ActualizarConEventos({ eventos, usuarioId, sonido }: Props) {
   const router = useRouter();
   const [aviso, setAviso] = useState<string>();
   const [alerta, setAlerta] = useState<string>();
@@ -35,6 +38,9 @@ export function ActualizarConEventos({ eventos, usuarioId }: Props) {
         setAviso(
           `Nuevo pedido ${d.pedidoId} para la mesa ${d.numeroMesa}${d.tieneAlergias ? ", con alergias" : ""}.`,
         );
+        if (sonido && estaSonidoCocinaActivado()) {
+          programarAvisoSonoro(d.tieneAlergias ? "alergia" : "pedido");
+        }
         router.refresh();
       },
       "pedido.estadoCambiado": (d: EventosTiempoReal["pedido.estadoCambiado"]) => {
@@ -50,6 +56,9 @@ export function ActualizarConEventos({ eventos, usuarioId }: Props) {
         setAlerta(
           `ALERGIA en la mesa ${d.numeroMesa}, pedido ${d.pedidoId}: ${d.nombreProducto}, ${d.alergias}.`,
         );
+        if (sonido && estaSonidoCocinaActivado()) {
+          programarAvisoSonoro("alergia");
+        }
         router.refresh();
       },
     };
@@ -70,7 +79,7 @@ export function ActualizarConEventos({ eventos, usuarioId }: Props) {
         if (manejador) socket.off(tipo, manejador as (...args: unknown[]) => void);
       }
     };
-  }, [clave, router, usuarioId]);
+  }, [clave, router, usuarioId, sonido]);
 
   return (
     <div className="avisos-tiempo-real">

@@ -14,6 +14,7 @@ import type { Server, Socket } from "socket.io";
 import { ErrorDominio } from "@/lib/errores";
 import type { UsuarioSesion } from "@/modules/autenticacion";
 import { conectados } from "./conectados";
+import { notificarEscribiendo } from "./escribiendo";
 import { enviarMensaje, obtenerHistorial } from "./servicio";
 
 export function registrarManejadores(io: Server, socket: Socket, usuario: UsuarioSesion): void {
@@ -51,10 +52,11 @@ export function registrarManejadores(io: Server, socket: Socket, usuario: Usuari
 
   /**
    * Solicitud de historial de mensajes:
-   * Responde SOLO a quien lo pidió.
+   * Responde SOLO a quien lo pidió y refresca la lista de conectados.
    */
   socket.on("chat:historial", async (sala: unknown, responder?: (r: unknown) => void) => {
     try {
+      socket.emit("chat:conectados", conectados.listar());
       const mensajes = await obtenerHistorial(usuario, sala);
       socket.emit("chat:historial", mensajes);
       responder?.({ ok: true, mensajes });
@@ -63,5 +65,23 @@ export function registrarManejadores(io: Server, socket: Socket, usuario: Usuari
         error instanceof ErrorDominio ? error.message : "Ocurrió un error al obtener el historial.";
       responder?.({ ok: false, error: mensajeError });
     }
+  });
+
+  /**
+   * Solicitud explícita de lista de conectados:
+   * Permite que pantallas montadas después de la conexión obtengan la lista de inmediato.
+   */
+  socket.on("chat:conectados", (responder?: (r: unknown) => void) => {
+    const lista = conectados.listar();
+    socket.emit("chat:conectados", lista);
+    responder?.({ ok: true, conectados: lista });
+  });
+
+  /**
+   * Evento de usuario escribiendo:
+   * Reenvía a los demás con datos tomados de la sesión (nunca del cliente).
+   */
+  socket.on("chat:escribiendo", () => {
+    notificarEscribiendo(socket, usuario);
   });
 }
