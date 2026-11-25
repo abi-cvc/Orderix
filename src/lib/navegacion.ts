@@ -20,6 +20,11 @@ export const NAVEGACION: readonly ElementoNavegacion[] = [
   { href: "/pedidos", etiqueta: "Pedidos", roles: [Rol.MESERO, Rol.CAJERO, Rol.ADMINISTRADOR] },
   { href: "/cocina", etiqueta: "Cocina", roles: [Rol.COCINA] },
   { href: "/caja", etiqueta: "Caja", roles: [Rol.CAJERO] },
+  {
+    href: "/reportes",
+    etiqueta: "Reportes",
+    roles: [Rol.MESERO, Rol.ADMINISTRADOR],
+  },
   { href: "/menu", etiqueta: "Menú", roles: [Rol.ADMINISTRADOR] },
   { href: "/usuarios", etiqueta: "Usuarios", roles: [Rol.ADMINISTRADOR] },
   { href: "/chat", etiqueta: "Chat", roles: TODOS },
