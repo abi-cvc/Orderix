@@ -56,3 +56,25 @@ export async function calificarPedido(
 
   return deps.repositorio.crear({ ...datos, cajeroId: usuario.id });
 }
+
+/** Consulta la calificación existente para mostrarla en el detalle del pedido. */
+export async function obtenerCalificacion(
+  pedidoId: number,
+  deps: Pick<DependenciasCalificaciones, "repositorio"> = dependenciasReales,
+): Promise<repositorio.CalificacionGuardada | null> {
+  const datos = validar(esquemaCrearCalificacion.pick({ pedidoId: true }), { pedidoId });
+  return deps.repositorio.buscarPorPedido(datos.pedidoId);
+}
+
+/**
+ * CONTRATO (reporte por mesero): calificaciones de una lista de pedidos.
+ * No decide permisos: el servicio del reporte comprueba quién puede ver qué.
+ */
+export async function calificacionesDePedidos(
+  pedidoIds: number[],
+  deps: Pick<typeof repositorio, "listarPorPedidos"> = repositorio,
+): Promise<repositorio.CalificacionGuardada[]> {
+  const ids = [...new Set(pedidoIds)].filter((id) => Number.isSafeInteger(id) && id > 0);
+  if (ids.length === 0) return [];
+  return deps.listarPorPedidos(ids);
+}

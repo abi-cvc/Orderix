@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boton } from "@/componentes/Boton";
 import { Campo } from "@/componentes/Campo";
 import { obtenerSocket } from "@/lib/socket-cliente";
+import { fechaHora, formatearHoraRelativa, formatearTextoEscribiendo } from "@/lib/formato";
 import type { MensajeGuardado, UsuarioConectado } from "@/modules/tiempo-real";
 import { esquemaTextoMensaje } from "@/modules/tiempo-real/validadores";
 
@@ -13,19 +14,8 @@ interface Props {
 
 type EstadoConexion = "conectando" | "conectado" | "error" | "desconectado";
 
-function formatearHora(fecha: Date | string): string {
-  try {
-    const d = typeof fecha === "string" ? new Date(fecha) : fecha;
-    return new Intl.DateTimeFormat("es-EC", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(d);
-  } catch {
-    return "";
-  }
-}
-
 export function ChatCliente({ usuarioActualId }: Props) {
+  const [ahoraGlobal, setAhoraGlobal] = useState<number>(() => Date.now());
   const [estadoConexion, setEstadoConexion] = useState<EstadoConexion>(() => {
     if (typeof window !== "undefined") {
       return obtenerSocket().connected ? "conectado" : "conectando";
@@ -39,7 +29,12 @@ export function ChatCliente({ usuarioActualId }: Props) {
   const [enviando, setEnviando] = useState(false);
   const [avisoLimite, setAvisoLimite] = useState<string>();
   const [anuncioNuevo, setAnuncioNuevo] = useState<string>();
+  const [escribiendoMap, setEscribiendoMap] = useState<Map<number, string>>(new Map());
   const contenedorMensajesRef = useRef<HTMLDivElement>(null);
+  const temporizadoresEscribiendoRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  const ultimoEnvioEscribiendoRef = useRef<number>(0);
 
   useEffect(() => {
     const socket = obtenerSocket();
@@ -70,14 +65,53 @@ export function ChatCliente({ usuarioActualId }: Props) {
       setMensajes(historial);
     };
 
+    const temporizadores = temporizadoresEscribiendoRef.current;
+
     const alRecibirMensaje = (nuevoMensaje: MensajeGuardado) => {
       setMensajes((anteriores) => {
         if (anteriores.some((m) => m.id === nuevoMensaje.id)) return anteriores;
         return [...anteriores, nuevoMensaje];
       });
 
+      // Si el autor del mensaje estaba escribiendo, quitarlo inmediatamente
+      const timer = temporizadoresEscribiendoRef.current.get(nuevoMensaje.autorId);
+      if (timer) {
+        clearTimeout(timer);
+        temporizadoresEscribiendoRef.current.delete(nuevoMensaje.autorId);
+      }
+      setEscribiendoMap((prev) => {
+        if (!prev.has(nuevoMensaje.autorId)) return prev;
+        const nuevo = new Map(prev);
+        nuevo.delete(nuevoMensaje.autorId);
+        return nuevo;
+      });
+
       // Se anuncia cortésmente el mensaje nuevo sin mover el foco
       setAnuncioNuevo(`Nuevo mensaje de ${nuevoMensaje.autorNombre}: ${nuevoMensaje.texto}`);
+    };
+
+    const alRecibirEscribiendo = (datos: { usuarioId: number; nombre: string }) => {
+      if (datos.usuarioId === usuarioActualId) return;
+
+      const timerPrevio = temporizadoresEscribiendoRef.current.get(datos.usuarioId);
+      if (timerPrevio) clearTimeout(timerPrevio);
+
+      const nuevoTimer = setTimeout(() => {
+        temporizadoresEscribiendoRef.current.delete(datos.usuarioId);
+        setEscribiendoMap((prev) => {
+          if (!prev.has(datos.usuarioId)) return prev;
+          const nuevo = new Map(prev);
+          nuevo.delete(datos.usuarioId);
+          return nuevo;
+        });
+      }, 3000);
+
+      temporizadoresEscribiendoRef.current.set(datos.usuarioId, nuevoTimer);
+      setEscribiendoMap((prev) => {
+        const nuevo = new Map(prev);
+        nuevo.set(datos.usuarioId, datos.nombre);
+        return nuevo;
+      });
     };
 
     socket.on("connect", alConectar);
@@ -87,14 +121,23 @@ export function ChatCliente({ usuarioActualId }: Props) {
     socket.on("chat:conectados", alRecibirConectados);
     socket.on("chat:historial", alRecibirHistorial);
     socket.on("chat:mensaje", alRecibirMensaje);
+    socket.on("chat:escribiendo", alRecibirEscribiendo);
 
-    // Pedir historial al montar
+    // Pedir historial y lista de conectados al montar
     socket.emit(
       "chat:historial",
       "general",
       (respuesta: { ok: boolean; mensajes?: MensajeGuardado[] }) => {
         if (respuesta?.ok && respuesta.mensajes) {
           setMensajes(respuesta.mensajes);
+        }
+      },
+    );
+    socket.emit(
+      "chat:conectados",
+      (respuesta: { ok: boolean; conectados?: UsuarioConectado[] }) => {
+        if (respuesta?.ok && respuesta.conectados) {
+          setConectados(respuesta.conectados);
         }
       },
     );
@@ -107,8 +150,15 @@ export function ChatCliente({ usuarioActualId }: Props) {
       socket.off("chat:conectados", alRecibirConectados);
       socket.off("chat:historial", alRecibirHistorial);
       socket.off("chat:mensaje", alRecibirMensaje);
+      socket.off("chat:escribiendo", alRecibirEscribiendo);
+
+      // Limpiar todos los temporizadores de escribiendo
+      for (const t of temporizadores.values()) {
+        clearTimeout(t);
+      }
+      temporizadores.clear();
     };
-  }, []);
+  }, [usuarioActualId]);
 
   // Desplazamiento automático de la vista de mensajes sin mover el foco
   useEffect(() => {
@@ -117,9 +167,22 @@ export function ChatCliente({ usuarioActualId }: Props) {
     }
   }, [mensajes]);
 
+  // Temporizador global para actualizar la hora relativa cada 30 segundos
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setAhoraGlobal(Date.now());
+    }, 30_000);
+    return () => clearInterval(intervalo);
+  }, []);
+
   const alEnviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (enviando) return;
+
+    if (!texto.trim()) {
+      setErrores(["El mensaje no puede estar vacío."]);
+      return;
+    }
 
     const resultado = esquemaTextoMensaje.safeParse(texto);
     if (!resultado.success) {
@@ -139,12 +202,16 @@ export function ChatCliente({ usuarioActualId }: Props) {
         setEnviando(false);
         if (respuesta?.ok) {
           setTexto("");
+          ultimoEnvioEscribiendoRef.current = 0;
         } else if (respuesta?.error) {
           setErrores([respuesta.error]);
         }
       },
     );
   };
+
+  const nombresEscribiendo = Array.from(escribiendoMap.values());
+  const textoEscribiendo = formatearTextoEscribiendo(nombresEscribiendo);
 
   const textoEstado = {
     conectando: "○ Conectando al chat...",
@@ -155,8 +222,8 @@ export function ChatCliente({ usuarioActualId }: Props) {
 
   return (
     <div className="chat-layout">
-      {/* Región viva cortés solo para anuncios de mensajes nuevos */}
-      <div aria-live="polite" aria-atomic="true" className="solo-lector">
+      {/* Región viva cortés solo para anuncios de mensajes nuevos (sin re-anunciar cambios) */}
+      <div aria-live="polite" aria-atomic="true" aria-relevant="additions" className="solo-lector">
         {anuncioNuevo}
       </div>
 
@@ -179,12 +246,15 @@ export function ChatCliente({ usuarioActualId }: Props) {
       <div className="chat-principal">
         {/* Panel de conversación */}
         <section className="seccion chat-conversacion" aria-label="Mensajes del chat">
+          {/* eslint-disable jsx-a11y/no-noninteractive-tabindex */}
           <div
             ref={contenedorMensajesRef}
             className="chat-mensajes"
-            role="region"
-            aria-label="Historial de mensajes de la sala general"
+            role="log"
+            aria-label="Mensajes del chat"
+            tabIndex={0}
           >
+            {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
             {mensajes.length === 0 ? (
               <p className="campo__ayuda chat-mensajes__vacio">
                 No hay mensajes aún en esta sala. Sé el primero en escribir.
@@ -203,8 +273,9 @@ export function ChatCliente({ usuarioActualId }: Props) {
                         <time
                           className="chat-burbuja__hora"
                           dateTime={new Date(mensaje.enviadoEn).toISOString()}
+                          title={fechaHora(mensaje.enviadoEn)}
                         >
-                          {formatearHora(mensaje.enviadoEn)}
+                          {formatearHoraRelativa(mensaje.enviadoEn, ahoraGlobal)}
                         </time>
                       </div>
                       <p className="chat-burbuja__texto">{mensaje.texto}</p>
@@ -213,6 +284,11 @@ export function ChatCliente({ usuarioActualId }: Props) {
                 })}
               </ol>
             )}
+          </div>
+
+          {/* Indicador accesible de personas escribiendo */}
+          <div role="status" aria-live="polite" className="chat-escribiendo">
+            {textoEscribiendo}
           </div>
 
           {/* Formulario para escribir mensaje */}
@@ -224,8 +300,17 @@ export function ChatCliente({ usuarioActualId }: Props) {
               errores={errores}
               value={texto}
               onChange={(e) => {
-                setTexto(e.target.value);
+                const nuevoTexto = e.target.value;
+                setTexto(nuevoTexto);
                 if (errores) setErrores(undefined);
+
+                // Throttle de 2 segundos para no superar límite de 20 eventos por 10 s
+                const ahora = Date.now();
+                if (nuevoTexto.trim() && ahora - ultimoEnvioEscribiendoRef.current >= 2000) {
+                  ultimoEnvioEscribiendoRef.current = ahora;
+                  const socket = obtenerSocket();
+                  socket.emit("chat:escribiendo");
+                }
               }}
               maxLength={1000}
               autoComplete="off"
@@ -235,7 +320,8 @@ export function ChatCliente({ usuarioActualId }: Props) {
               <Boton
                 type="submit"
                 variante="primario"
-                disabled={enviando || !texto.trim() || estadoConexion !== "conectado"}
+                disabled={enviando || estadoConexion !== "conectado"}
+                aria-disabled={!texto.trim() || enviando || estadoConexion !== "conectado"}
               >
                 {enviando ? "Enviando..." : "Enviar"}
               </Boton>

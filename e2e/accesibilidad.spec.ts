@@ -178,4 +178,7 @@ test("adaptable: a 320 px no hay desplazamiento horizontal y el menú se pliega"
 test("permisos: el mesero no puede abrir la pantalla de cocina", async ({ page }) => {
   const respuesta = await page.goto("/cocina");
   expect(respuesta?.status()).toBe(404);
+
+  const calificacion = await page.goto("/calificar/1");
+  expect(calificacion?.status()).toBe(404);
 });

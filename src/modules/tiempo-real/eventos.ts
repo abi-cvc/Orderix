@@ -56,6 +56,12 @@ export interface EventosTiempoReal {
     id: number;
     nombre: string;
   }[];
+
+  /** Un usuario está escribiendo en el chat. */
+  "chat:escribiendo": {
+    usuarioId: number;
+    nombre: string;
+  };
 }
 
 export type TipoEvento = keyof EventosTiempoReal;

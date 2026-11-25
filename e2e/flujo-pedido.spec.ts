@@ -80,4 +80,25 @@ test("mesero, cocina y caja completan un pedido con alergia, con avisos en tiemp
   await expect(historial.nth(0)).toContainText("Lucía Andrade");
   await expect(historial.nth(2)).toContainText("Diego Paredes");
   await expect(historial.nth(4)).toContainText("Sofía Cevallos");
+
+  // 7. El cajero presenta la pantalla al cliente y registra una calificación.
+  await caja.setViewportSize({ width: 1024, height: 768 });
+  await caja.goto(`/calificar/${pedidoId}`);
+  await expect(caja.getByRole("heading", { name: "¿Cómo fue tu experiencia?" })).toBeVisible();
+  const opciones = caja.getByRole("radio");
+  await expect(opciones).toHaveCount(5);
+  await expect(caja.getByRole("button", { name: "Enviar" })).toBeDisabled();
+  await opciones.first().focus();
+  await caja.keyboard.press("ArrowRight");
+  await expect(opciones.nth(1)).toBeChecked();
+  const dimensiones = await caja.locator(".calificacion-cara").first().boundingBox();
+  expect(dimensiones?.width).toBeGreaterThanOrEqual(72);
+  expect(dimensiones?.height).toBeGreaterThanOrEqual(72);
+  await caja.getByText("Excelente", { exact: true }).click();
+  await caja.getByRole("button", { name: "Enviar" }).click();
+  await expect(caja.getByRole("heading", { name: "¡Gracias!" })).toBeVisible();
+  await caja.getByRole("link", { name: "Volver a Caja" }).click();
+  await caja.goto(`/pedidos/${pedidoId}`);
+  await expect(caja.getByText("5/5 · Excelente")).toBeVisible();
+  await expect(caja.getByRole("link", { name: "Calificar servicio" })).toBeHidden();
 });

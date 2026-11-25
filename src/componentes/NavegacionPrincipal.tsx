@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useNoLeidos } from "./NoLeidosChat";
 import { IconoSeccion } from "./IconoSeccion";
 
 interface Props {
@@ -18,6 +19,7 @@ export function NavegacionPrincipal({ elementos }: Props) {
   const ruta = usePathname();
   const [abierta, setAbierta] = useState(false);
   const boton = useRef<HTMLButtonElement>(null);
+  const { noLeidos, formatearInsignia, formatearAriaLabel } = useNoLeidos();
 
   useEffect(() => {
     if (!abierta) return;
@@ -44,23 +46,40 @@ export function NavegacionPrincipal({ elementos }: Props) {
         onClick={() => setAbierta((valor) => !valor)}
       >
         <span className="nav__icono-menu" aria-hidden="true" />
-        {abierta ? "Cerrar menú" : "Menú"}
+        <span>{abierta ? "Cerrar menú" : "Menú"}</span>
+        {noLeidos > 0 && (
+          <span className="nav__insignia nav__insignia--boton" aria-hidden="true">
+            {formatearInsignia(noLeidos)}
+          </span>
+        )}
       </button>
       <nav id="navegacion-principal" className="nav" aria-label="Principal" data-abierta={abierta}>
         <ul className="nav__lista">
-          {elementos.map(({ href, etiqueta }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                className="nav__enlace"
-                aria-current={esActual(href) ? "page" : undefined}
-                onClick={() => setAbierta(false)}
-              >
-                <IconoSeccion ruta={href} />
-                {etiqueta}
-              </Link>
-            </li>
-          ))}
+          {elementos.map(({ href, etiqueta }) => {
+            const esChat = href === "/chat";
+            const tieneNoLeidos = esChat && noLeidos > 0;
+            const ariaLabel = tieneNoLeidos ? formatearAriaLabel(noLeidos, etiqueta) : undefined;
+
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className="nav__enlace"
+                  aria-current={esActual(href) ? "page" : undefined}
+                  aria-label={ariaLabel}
+                  onClick={() => setAbierta(false)}
+                >
+                  <IconoSeccion ruta={href} />
+                  <span>{etiqueta}</span>
+                  {tieneNoLeidos && (
+                    <span className="nav__insignia" aria-hidden="true">
+                      {formatearInsignia(noLeidos)}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </>
